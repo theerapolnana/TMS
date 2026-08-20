@@ -15,7 +15,6 @@
       "role": "Staff"
     }
   ],
-  
   "jobs": [
     {
       "id": "JOB-001",
@@ -25,9 +24,20 @@
       "lossAmount": 0,
       "unloadingFee": 0,
       "netAmount": 10048.5
+    },
+    {
+      "id": "JOB-1787200666249",
+      "customer": "บริษัท สมาร์ทเทรด จำกัด",
+      "plateNumber": "3กข-1234 กทม.",
+      "product": "กะลาปาล์ม",
+      "origin": "ชุมพร",
+      "destination": "คลัง",
+      "pricePerTon": "330",
+      "date": "2026-08-20",
+      "status": "รอดำเนินการ"
     }
   ],
-    "vehicles": [
+  "vehicles": [
     {
       "id": "VHC-001",
       "plateNumber": "3กข-1234 กทม.",

@@ -164,17 +164,18 @@
                     document.getElementById('dashJobDate').value = new Date().toISOString().split('T')[0];
                 }
 
-           // 1. ดึง Token ออกมารอส่งให้หลังบ้าน
+                   // 1. ดึง Token ออกมารอส่งให้หลังบ้าน
         const token = localStorage.getItem('tms_token');
-        const fetchOptions = {
+                const fetchOptions = {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
-        };
+        }; // 👈 บรรทัดที่ 175 ต้องจบด้วย ปีกกาและเซมิโคลอน ตัวนี้ตัวเดียวเลยครับ!
 
-        // 2. ยิง fetch ไปหาหลังบ้านพร้อมแนบตัวเลือก fetchOptions (ลูกกุญแจ)
+
+        // 2. ยิง fetch ไปหลังบ้านพร้อมแนบตัวเลือก fetchOptions (ลูกกุญแจ)
         const resJobs = await fetch(`${BASE_URL}/jobs`, fetchOptions);
         const jobsList = await resJobs.json();
 
@@ -183,6 +184,7 @@
 
         const resCustomers = await fetch(`${BASE_URL}/customers`, fetchOptions);
         const customers = await resCustomers.json();
+
 
                 const dashTbody = document.getElementById('dashTableBody');
                 if (dashTbody) {
@@ -248,20 +250,32 @@
                 pricePerTon: document.getElementById('dashPrice').value,
                 date: document.getElementById('dashJobDate').value
             };
-            const res = await fetch(`${BASE_URL}/jobs`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify(jobData) 
-            });
-            if(res.ok) { 
-                alert('บันทึกเปิดจ็อบงานสำเร็จเรียบร้อยครับ!'); 
-                this.reset(); 
-                document.getElementById('dashJobDate').value = new Date().toISOString().split('T')[0];
-                refreshDashboardData(); 
-            }
-        });
+                    // 1. ดึง Token มารอส่ง
+        const token = localStorage.getItem('tms_token');
+
+        // 2. เปลี่ยนเครื่องหมายคำพูดเป็น Backtick ` และใส่ Authorization ใน headers
+        const res = await fetch(`${BASE_URL}/jobs`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jobData)
+                }); // ปิดปีกกาของ fetch (บรรทัดที่ 264)
+
+        if (res.ok) {
+            alert('🎉 บันทึกเปิดใบงานสำเร็จเรียบร้อยครับ!');
+            this.reset();
+            document.getElementById('dashJobDate').value = new Date().toISOString().split('T')[0];
+            refreshDashboardData();
+        }
+    }); // ปิดปีกกาของ addEventListener (บรรทัดที่ 272)
+
 
         window.addEventListener('DOMContentLoaded', refreshDashboardData);
+        // สั่งให้ฟังก์ชันเริ่มทำงานทันทีเมื่อเปิดหน้าเว็บ
+
+
     </script>
 </body>
 </html>
