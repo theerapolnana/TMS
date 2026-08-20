@@ -1,3 +1,12 @@
+<head>
+    <!-- วางไว้บนสุดเพื่อให้โค้ดตรวจเช็กสิทธิ์ก่อนจะเริ่มวาดหน้าจอเว็บ -->
+    <script src="js/auth-check.js"></script>
+    
+    <meta charset="UTF-8">
+    <title>TMS System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -155,12 +164,25 @@
                     document.getElementById('dashJobDate').value = new Date().toISOString().split('T')[0];
                 }
 
-                const resJobs = await fetch(`${BASE_URL}/jobs`);
-                const jobsList = await resJobs.json();
-                const resVehicles = await fetch(`${BASE_URL}/vehicles`);
-                const vehicles = await resVehicles.json();
-                const resCustomers = await fetch(`${BASE_URL}/customers`);
-                const customers = await resCustomers.json();
+           // 1. ดึง Token ออกมารอส่งให้หลังบ้าน
+        const token = localStorage.getItem('tms_token');
+        const fetchOptions = {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        };
+
+        // 2. ยิง fetch ไปหาหลังบ้านพร้อมแนบตัวเลือก fetchOptions (ลูกกุญแจ)
+        const resJobs = await fetch(`${BASE_URL}/jobs`, fetchOptions);
+        const jobsList = await resJobs.json();
+
+        const resVehicles = await fetch(`${BASE_URL}/vehicles`, fetchOptions);
+        const vehicles = await resVehicles.json();
+
+        const resCustomers = await fetch(`${BASE_URL}/customers`, fetchOptions);
+        const customers = await resCustomers.json();
 
                 const dashTbody = document.getElementById('dashTableBody');
                 if (dashTbody) {

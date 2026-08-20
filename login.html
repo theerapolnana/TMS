@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>TMS - เข้าสู่ระบบ</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .login-container { width: 400px; margin: 150px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body style="background:#f1f5f9; display:block;">
+    <div class="login-container">
+        <h2>🚚 TMS Login</h2><br>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>ชื่อผู้ใช้งาน</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label>รหัสผ่าน</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">เข้าสู่ระบบ</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    // เก็บค่า Token และสิทธิ์ไว้ในระบบเบราว์เซอร์
+                    localStorage.setItem('tms_token', data.token);
+                    localStorage.setItem('tms_role', data.role);
+                    localStorage.setItem('tms_name', data.name);
+                    
+                    // ล็อกอินผ่านแล้วให้ไปหน้าแดชบอร์ดหลัก
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert('เซิร์ฟเวอร์ขัดข้อง');
+            }
+        });
+    </script>
+</body>
+</html>

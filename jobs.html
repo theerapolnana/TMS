@@ -1,3 +1,12 @@
+<head>
+    <!-- วางไว้บนสุดเพื่อให้โค้ดตรวจเช็กสิทธิ์ก่อนจะเริ่มวาดหน้าจอเว็บ -->
+    <script src="js/auth-check.js"></script>
+    
+    <meta charset="UTF-8">
+    <title>TMS System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -173,12 +182,25 @@
 
         async function refreshJobsPageData() {
             try {
-                const resJobs = await fetch(`${BASE_URL}/jobs`);
-                localJobsList = await resJobs.json();
-                const resVehicles = await fetch(`${BASE_URL}/vehicles`);
-                const vehicles = await resVehicles.json();
-                const resCustomers = await fetch(`${BASE_URL}/customers`);
-                const customers = await resCustomers.json();
+                       // 1. ดึง Token มารอส่งให้เซิร์ฟเวอร์หลังบ้าน
+        const token = localStorage.getItem('tms_token');
+        const fetchOptions = {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        };
+
+        // 2. ปรับคำสั่ง fetch ทั้ง 3 ตัวให้แนบลูกกุญแจความปลอดภัยไปด้วย
+        const resJobs = await fetch(`${BASE_URL}/jobs`, fetchOptions);
+        localJobsList = await resJobs.json(); // สังเกตของเดิมเป็น localJobsList นะครับ ปล่อยชื่อเดิมไว้เลย
+
+        const resVehicles = await fetch(`${BASE_URL}/vehicles`, fetchOptions);
+        const vehicles = await resVehicles.json();
+
+        const resCustomers = await fetch(`${BASE_URL}/customers`, fetchOptions);
+        const customers = await resCustomers.json();
 
                 // สั่งประมวลผลเรนเดอร์ตารางร่วมกับตัวกรองทันทีที่โหลดข้อมูลเสร็จ
                 filterAndRenderTable();
@@ -296,11 +318,17 @@ document.getElementById('manageJobForm').addEventListener('submit', async functi
         dateReceive: document.getElementById('manageDateReceive').value, // 👈 ส่งวันรับสินค้า
         dateSend: document.getElementById('manageDateSend').value        // 👈 ส่งวันส่งสินค้า
     };
-    const res = await fetch(`${BASE_URL}/jobs/${id}`, { 
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(updatedData) 
-    });
+            const token = localStorage.getItem('tms_token'); // ดึง token มารอไว้
+
+        const res = await fetch(`${BASE_URL}/jobs/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`, // บรรทัดนี้สำคัญมาก! เพิ่มเข้ามา
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+
     if (res.ok) { alert('อัปเดตข้อมูลใบงานและคำนวณเงินสำเร็จ!'); resetJobForm(); refreshJobsPageData(); }
 });
 
@@ -325,20 +353,38 @@ document.getElementById('manageJobForm').addEventListener('submit', async functi
                 destination: document.getElementById('manageDestination').value, 
                 status: document.getElementById('manageStatus').value
             };
-            const res = await fetch(`${BASE_URL}/jobs/${id}`, { 
-                method: 'PUT', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify(updatedData) 
-            });
+                    const token = localStorage.getItem('tms_token'); // ดึง token มารอไว้
+
+        const res = await fetch(`${BASE_URL}/jobs/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`, // เพิ่มหัวข้อเพื่อยืนยันตัวตน
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+
             if (res.ok) { alert('อัปเดตน้ำหนักและคำนวณเงินสำเร็จ!'); resetJobForm(); refreshJobsPageData(); }
         });
 
         async function deleteJob(id) {
-            if (confirm('คุณต้องการลบจ็อบงานนี้?')) {
-                const res = await fetch(`${BASE_URL}/jobs/${id}`, { method: 'DELETE' });
-                if (res.ok) refreshJobsPageData();
+    if (confirm('คุณต้องการลบใบงานนี้?')) {
+        // 1. ดึงกุญแจ Token มารอส่งให้หลังบ้าน
+        const token = localStorage.getItem('tms_token');
+
+        // 2. ปรับตัว fetch ให้มีการใส่ headers และส่ง Token ควบคู่ไปกับ method: 'DELETE'
+        const res = await fetch(`${BASE_URL}/jobs/${id}`, { 
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-        }
+        });
+        
+        if (res.ok) refreshJobsPageData();
+    }
+}
+
 
         // ระบบจับสัญญาณเชื่อมโยง One-Click ทางลัดมาจากหน้าแดชบอร์ดแรก
         window.addEventListener('DOMContentLoaded', async () => {
