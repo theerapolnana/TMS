@@ -14,9 +14,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
 app.use(express.json());
-
 
 const dbPath = path.join(__dirname, 'tms_db.json');
 const JWT_SECRET = 'TMS_SUPER_SECRET_KEY_2026'; // คีย์ลับสำหรับระบบล็อกอิน
@@ -27,7 +25,6 @@ async function getDB() {
         const data = await fs.readFile(dbPath, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        // หากไฟล์ว่างหรือพัง ให้คืนค่าโครงสร้างพื้นฐาน
         return { users: [], jobs: [], vehicles: [], customers: [], billing: [] };
     }
 }
@@ -52,7 +49,6 @@ app.post('/api/login', async (req, res) => {
         return res.status(401).json({ success: false, message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
     }
     
-    // สร้าง JWT Token ดึงข้อมูลสำคัญฝังไปด้วย
     const token = jwt.sign(
         { id: user.id, name: user.name, role: user.role },
         JWT_SECRET,
@@ -65,7 +61,7 @@ app.post('/api/login', async (req, res) => {
 // 2. Middleware ดักจับผู้ใช้งานที่ไม่ได้ล็อกอิน
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // ดึงค่า Token ออกมาจาก Bearer <token>
+    const token = authHeader && authHeader.split(' ')[1]; // 💡 เคลียร์บั๊ก: แกะเอา Token ออกมาจาก Bearer อย่างถูกต้อง
     
     if (!token) return res.status(401).json({ message: "กรุณาเข้าสู่ระบบก่อนใช้งาน" });
     
@@ -93,6 +89,18 @@ function requireAdmin(req, res, next) {
 app.get('/api/jobs', authenticateToken, async (req, res) => {
     const db = await getDB();
     res.json(db.jobs);
+});
+
+// 💡 จัดระเบียบ: วางระบบค้นหาใบงานรายชิ้นไว้ใต้รายการหลักเพื่อป้องกันการแย่งสิทธิ์ข้อมูล
+app.get('/api/jobs/:id', authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const db = await getDB();
+    const job = db.jobs.find(j => j.id === id);
+    
+    if (job) {
+        return res.json(job);
+    }
+    res.status(404).json({ success: false, message: "ไม่พบข้อมูลใบงาน" });
 });
 
 app.post('/api/jobs', authenticateToken, async (req, res) => {
@@ -258,7 +266,6 @@ app.get('/api/dashboard-summary', authenticateToken, async (req, res) => {
     res.json(summary);
 });
 
-
 // เริ่มต้นเปิดเซิร์ฟเวอร์
 const PORT = 3000;
-app.listen(PORT, () => console.log(`🚚 TMS Backend fully unlocked on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚚 TMS Backend fully stabilized on http://localhost:${PORT}`));

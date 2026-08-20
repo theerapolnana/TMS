@@ -17,15 +17,6 @@
   ],
   "jobs": [
     {
-      "id": "JOB-001",
-      "totalRevenue": 10150,
-      "status": "สำเร็จแล้ว",
-      "taxiPercent": 101.5,
-      "lossAmount": 0,
-      "unloadingFee": 0,
-      "netAmount": 10048.5
-    },
-    {
       "id": "JOB-1787200666249",
       "customer": "บริษัท สมาร์ทเทรด จำกัด",
       "plateNumber": "3กข-1234 กทม.",
@@ -33,6 +24,17 @@
       "origin": "ชุมพร",
       "destination": "คลัง",
       "pricePerTon": "330",
+      "date": "2026-08-20",
+      "status": "รอดำเนินการ"
+    },
+    {
+      "id": "JOB-1787201813851",
+      "customer": "บริษัท สมาร์ทเทรด จำกัด",
+      "plateNumber": "3กข-1234 กทม.",
+      "product": "กะลาปาล์ม",
+      "origin": "ชุมพร",
+      "destination": "คลัง",
+      "pricePerTon": "550",
       "date": "2026-08-20",
       "status": "รอดำเนินการ"
     }
