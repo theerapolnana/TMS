@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการรายชื่อลูกค้า - TMS Logistics</title>
+    <!-- เรียกใช้สไตล์กลาง -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ระบบเมนูเปลี่ยนหน้าข้ามไฟล์ -->
+    <div class="sidebar">
+        <div class="sidebar-brand">📦 TMS Logistics</div>
+        <ul class="sidebar-menu">
+            <li class="menu-item"><a href="index.html">📊 แดชบอร์ดภาพรวม</a></li>
+            <li class="menu-item"><a href="jobs.html">📝 จัดการงานขนส่ง</a></li>
+            <li class="menu-item active"><a href="customers.html">👥 จัดการรายชื่อลูกค้า</a></li>
+            <li class="menu-item"><a href="vehicles.html">🚛 จัดการทะเบียนรถ</a></li>
+            <li class="menu-item"><a href="billing.html">🧾 ออกใบวางบิลลูกค้า</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header><h2>ระบบบริหารจัดการงานขนส่งสินค้า</h2></header>
+        <div class="container">
+
+            <!-- ฟอร์มเพิ่มข้อมูลลูกค้าใหม่ -->
+            <div class="card">
+                <div class="card-header">➕ เพิ่มข้อมูลลูกค้าใหม่เข้าสู่ระบบ</div>
+                <div class="card-body">
+                    <form id="customerForm">
+                        <div class="form-grid">
+                            <div class="form-group"><label>ชื่อบริษัท / ชื่อลูกค้า</label><input type="text" id="cName" class="form-control" required></div>
+                            <div class="form-group"><label>เบอร์โทรศัพท์ติดต่อ</label><input type="text" id="cPhone" class="form-control" required></div>
+                            <div class="form-group">
+                                <label>วิธีคิดเงิน / ชำระสัญญา</label>
+                                <select id="cBillingMethod" class="form-control" required>
+                                    <option value="น้ำหนักขึ้นสินค้า">น้ำหนักขึ้นสินค้า</option>
+                                    <option value="น้ำหนักหลังลงสินค้า">น้ำหนักหลังลงสินค้า</option>
+                                    <option value="น้ำหนักที่น้อย">น้ำหนักที่น้อย (ระหว่าง ขึ้น/ลง)</option>
+                                    <option value="น้ำหนักที่มาก">น้ำหนักที่มาก (ระหว่าง ขึ้น/ลง)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-grid" style="margin-top:1rem;">
+                            <div class="form-group" style="grid-column: span 3;"><label>ที่อยู่จัดส่งใบเสร็จ/พิกัด</label><input type="text" id="cAddress" class="form-control" required></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:1rem;">บันทึกข้อมูลลูกค้า</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ตารางรายชื่อลูกค้าทั้งหมด -->
+            <div class="card">
+                <div class="card-header">👥 รายชื่อลูกค้าและข้อตกลงสัญญาทั้งหมด</div>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr><th>ลำดับ</th><th>ชื่อลูกค้า / บริษัท</th><th>เบอร์โทรศัพท์</th><th>วิธีคิดเงิน</th><th>ที่อยู่หลัก</th><th>การจัดการ</th></tr>
+                        </thead>
+                        <tbody id="customerTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000/api';
+
+        async function refreshCustomersPageData() {
+            try {
+                const resCustomers = await fetch(`${BASE_URL}/customers`);
+                const customers = await resCustomers.json();
+
+                const customerTbody = document.getElementById('customerTableBody');
+                if (customerTbody) {
+                    customerTbody.innerHTML = '';
+                    customers.forEach((c, idx) => {
+                        customerTbody.innerHTML += `<tr>
+                            <td>${idx + 1}</td>
+                            <td><b>${c.name}</b></td>
+                            <td>${c.phone}</td>
+                            <td><span style="color:var(--primary); font-weight:500;">${c.billingMethod || '-'}</span></td>
+                            <td>${c.address}</td>
+                            <td><button class="btn btn-danger" onclick="deleteCustomer(${c.id})">ลบ</button></td>
+                        </tr>`;
+                    });
+                }
+            } catch (error) { console.error("ดึงข้อมูลลูกค้าล้มเหลว:", error); }
+        }
+
+        document.getElementById('customerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const cData = { 
+                name: document.getElementById('cName').value, 
+                phone: document.getElementById('cPhone').value, 
+                address: document.getElementById('cAddress').value, 
+                billingMethod: document.getElementById('cBillingMethod').value 
+            };
+            const res = await fetch(`${BASE_URL}/customers`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(cData) 
+            });
+            if (res.ok) { alert('เพิ่มลูกค้าสำเร็จ!'); this.reset(); refreshCustomersPageData(); }
+        });
+
+        async function deleteCustomer(id) {
+            if (confirm('ลบลูกค้ารายนี้?')) {
+                const res = await fetch(`${BASE_URL}/customers/${id}`, { method: 'DELETE' });
+                if (res.ok) refreshCustomersPageData();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', refreshCustomersPageData);
+    </script>
+</body>
+</html>

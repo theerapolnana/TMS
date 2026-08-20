@@ -1,0 +1,85 @@
+{
+  "customers": [
+    {
+      "id": 1,
+      "name": "บจก. เอสซีจี เทรดดิ้ง",
+      "phone": "02-586-2222",
+      "address": "บางซื่อ กรุงเทพฯ",
+      "billingMethod": "น้ำหนักหลังลงสินค้า"
+    }
+  ],
+  "vehicles": [
+    {
+      "id": 1,
+      "plateNumber": "1กข-1234 กรุงเทพฯ",
+      "type": "รถ 4 ล้อ"
+    },
+    {
+      "id": 2,
+      "plateNumber": "2คข-5678 นนทบุรี",
+      "type": "รถ 6 ล้อ"
+    },
+    {
+      "id": 3,
+      "plateNumber": "3ตข-9012 เชียงใหม่",
+      "type": "รถ 10 ล้อ"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 4,
+      "customer": "บจก. เอสซีจี เทรดดิ้ง",
+      "plateNumber": "3ตข-9012 เชียงใหม่",
+      "product": "กะลาปาล์ม",
+      "origin": "ชุมพร",
+      "destination": "คลัง",
+      "pricePerTon": 500,
+      "weightIn": 30,
+      "weightOut": 29,
+      "totalRevenue": 14500,
+      "tax1Percent": 145,
+      "lossAmount": 0,
+      "unloadingFee": 0,
+      "netAmount": 14355,
+      "status": "สำเร็จแล้ว",
+      "date": "2026-08-19",
+      "dateReceive": "2026-08-19",
+      "dateSend": "2026-08-19"
+    },
+    {
+      "id": 3,
+      "customer": "บจก. เอสซีจี เทรดดิ้ง",
+      "plateNumber": "2คข-5678 นนทบุรี",
+      "product": "กะลาปาล์ม",
+      "origin": "ชุมพร",
+      "destination": "คลัง",
+      "pricePerTon": 330,
+      "weightIn": 0,
+      "weightOut": 0,
+      "totalRevenue": 0,
+      "tax1Percent": 0,
+      "lossAmount": 0,
+      "unloadingFee": 0,
+      "netAmount": 0,
+      "status": "รอดำเนินการ",
+      "date": "2026-08-19"
+    },
+    {
+      "id": 2,
+      "customer": "บจก. เอสซีจี เทรดดิ้ง",
+      "plateNumber": "1กข-1234 กรุงเทพฯ",
+      "product": "หกด",
+      "origin": "หกด",
+      "destination": "หกด",
+      "pricePerTon": 350,
+      "weightIn": 29,
+      "weightOut": 29,
+      "totalRevenue": 10150,
+      "status": "สำเร็จแล้ว",
+      "tax1Percent": 101.5,
+      "lossAmount": 0,
+      "unloadingFee": 0,
+      "netAmount": 10048.5
+    }
+  ]
+}

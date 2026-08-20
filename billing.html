@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ออกใบวางบิลลูกค้า - TMS Logistics</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        :root { 
+            --primary: #3b82f6; --primary-light: #eff6ff;
+            --success: #10b981; --success-light: #ecfdf5;
+            --dark: #0f172a; --gray-light: #f8fafc; 
+            --gray-border: #e2e8f0; --white: #ffffff; 
+            --text-muted: #64748b;
+        }
+        body { background-color: var(--gray-light); color: var(--dark); display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background-color: var(--dark); color: var(--white); padding: 2rem 1.5rem; display: flex; flex-direction: column; }
+        .sidebar-brand { font-size: 1.4rem; font-weight: 800; margin-bottom: 2.5rem; color: #60a5fa; display: flex; align-items: center; gap: 0.5rem; }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .menu-item a { color: #94a3b8; text-decoration: none; padding: 0.85rem 1.25rem; border-radius: 0.5rem; display: block; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
+        .menu-item.active a, .menu-item a:hover { background-color: #1e293b; color: var(--white); }
+        .menu-item.active a { background-color: var(--primary); }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-x: hidden; }
+        header { background-color: var(--white); padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--gray-border); }
+        header h2 { font-size: 1.3rem; font-weight: 700; color: var(--dark); }
+        .container { padding: 2.5rem; max-width: 1400px; width: 100%; margin: 0 auto; }
+        .card { background-color: var(--white); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid var(--gray-border); margin-bottom: 2.5rem; overflow: hidden; }
+        .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--gray-border); font-weight: 700; font-size: 1.05rem; color: var(--dark); }
+        .card-body { padding: 2rem; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+        .form-control { padding: 0.65rem 1rem; border: 1px solid var(--gray-border); border-radius: 0.5rem; font-size: 0.9rem; background-color: var(--gray-light); color: var(--dark); outline: none; }
+        .checkbox-group { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; }
+        .checkbox-control { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+        .checkbox-label { font-size: 0.9rem; font-weight: 600; color: var(--dark); }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-primary { background-color: var(--primary); color: var(--white); width: 100%; }
+        .btn-success { background-color: var(--success); color: var(--white); }
+        @media print {
+            .sidebar, header, .card-header, .form-control, .btn, .no-print, .checkbox-group { display: none !important; }
+            body, .main-content, .container, .card, .card-body { background: white !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; width: 100% !important; display: block !important; }
+            #billingInvoiceContainer { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; max-width: 100% !important; display: block !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">📦 TMS Logistics</div>
+        <ul class="sidebar-menu">
+            <li class="menu-item"><a href="index.html">📊 แดชบอร์ดภาพรวม</a></li>
+            <li class="menu-item"><a href="jobs.html">📝 จัดการงานขนส่ง</a></li>
+            <li class="menu-item"><a href="customers.html">👥 จัดการรายชื่อลูกค้า</a></li>
+            <li class="menu-item"><a href="vehicles.html">🚛 จัดการทะเบียนรถ</a></li>
+            <li class="menu-item active"><a href="billing.html">🧾 ออกใบวางบิลลูกค้า</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header><h2>ระบบออกใบวางบิลและใบแจ้งหนี้</h2></header>
+        <div class="container">
+            
+            <div class="card no-print">
+                <div class="card-header">🔎 คัดกรองและออกใบวางบิล (Billing Statement)</div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div class="form-group"><label>เลือกบริษัทคู่สัญญา / ลูกค้า</label><select id="billCustomerSelect" class="form-control"></select></div>
+                        <div class="form-group"><label>ตั้งแต่วันที่รับสินค้า</label><input type="date" id="billStartDate" class="form-control"></div>
+                        <div class="form-group"><label>ถึงวันที่รับสินค้า</label><input type="date" id="billEndDate" class="form-control"></div>
+                    </div>
+                    <div class="checkbox-group" style="margin-top: 1rem;">
+                        <input type="checkbox" id="billApplyTax" class="checkbox-control" checked onchange="if(document.getElementById('billingInvoiceContainer').style.display === 'block') generateBillingReport();">
+                        <label for="billApplyTax" class="checkbox-label">คำนวณหักภาษี ณ ที่จ่าย 1% ในใบวางบิลนี้</label>
+                    </div>
+                    <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px dashed var(--gray-border);">
+                        <div class="checkbox-group" style="margin-bottom: 1.25rem;">
+                            <input type="checkbox" id="billApplyLoss" class="checkbox-control" checked onchange="toggleLossInputs(); if(document.getElementById('billingInvoiceContainer').style.display === 'block') generateBillingReport();">
+                            <label for="billApplyLoss" class="checkbox-label">คำนวณหักค่าน้ำหนักสูญหาย (Loss Weight)</label>
+                        </div>
+                        <div id="lossConfigGrid" class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem;">
+                            <div class="form-group"><label>น้ำหนักหายเกณฑ์ยอมรับได้ (ตัน)</label><input type="number" id="billLossThreshold" class="form-control" value="0.300" step="0.001" oninput="if(document.getElementById('billingInvoiceContainer').style.display === 'block') generateBillingReport();"></div>
+                            <div class="form-group"><label>ราคาปรับ/ตันที่สูญหาย (บาท)</label><input type="number" id="billLossPricePerTon" class="form-control" value="500" step="1" oninput="if(document.getElementById('billingInvoiceContainer').style.display === 'block') generateBillingReport();"></div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; margin-top: 1.5rem;"><button class="btn btn-primary" onclick="generateBillingReport()">🔍 ประมวลผลและดึงตัวอย่างเอกสาร</button></div>
+                </div>
+            </div>
+            <div id="billingInvoiceContainer" class="card" style="display: none; padding: 2.5rem; background: #fff; max-width: 1000px; margin: 0 auto; color: #000; border: 1px solid var(--gray-border);">
+                
+                <div style="text-align: center; margin-bottom: 1.5rem; line-height: 1.5;">
+                    <h2 style="font-size: 1.15rem; font-weight: bold; margin-bottom: 0.2rem;">ห้างหุ้นส่วนจำกัด ลาภูทรานสปอร์ต (สำนักงานใหญ่)</h2>
+                    <p style="font-size: 0.85rem;">4/7 ถ.พิศิษฐพยาบาล ต.ท่าตะเภา อ.เมือง จ.ชุมพร 86000</p>
+                    <p style="font-size: 0.85rem;">โทร./แฟกซ์ 077-630651 เลขประจำตัวผู้เสียภาษี 0863549000718</p>
+                    <h1 style="font-size: 1.3rem; font-weight: bold; margin-top: 1.25rem; border-bottom: 1px solid #000; padding-bottom: 0.4rem;">ใบวางบิล / ใบแจ้งหนี้</h1>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; line-height: 1.8;">
+                    <div style="border: 1px solid #000; padding: 0.75rem; border-radius: 4px; min-height: 110px;">
+                        <p style="display: flex;"><b style="min-width: 70px;">ชื่อลูกค้า :</b> <span id="invCustName">--</span></p>
+                        <p style="display: flex;"><b style="min-width: 70px;">ที่อยู่ :</b> <span id="invCustAddress" style="line-height: 1.4; padding-top: 0.2rem;">--</span></p>
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.2rem;"><p><b>โทร. :</b> -</p><p style="margin-right: 2rem;"><b>เลขประจำตัวผู้เสียภาษี :</b> -</p></div>
+                    </div>
+                    <div style="border: 1px solid #000; padding: 0.75rem; border-radius: 4px; min-height: 110px;">
+                        <p><b>เลขที่ :</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="invNum" style="font-weight: bold;">--</span></p>
+                        <p><b>วันที่ :</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="invPrintDate">--/--/----</span></p>
+                        <p><b>วันครบกำหนดชำระ :</b> -</p>
+                        <p><b>เงื่อนไขการจ่ายชำระ :</b> 15 วัน</p>
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 1.5rem; color: #000; table-layout: fixed;">
+                    <thead>
+                        <tr style="background: #e5e7eb; border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: center; width: 5%;">ลำดับ</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: center; width: 8%;">วันที่รับ<br>สินค้า</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: center; width: 8%;">วันที่ส่ง<br>สินค้า</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: center; width: 10%;">ทะเบียน</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.5rem; width: 15%;">สถานที่รับ<br>สินค้า</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.5rem; width: 15%;">สถานที่ส่ง<br>สินค้า</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: center; width: 9%;">ประเภท<br>สินค้า</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: right; width: 7%;">น้ำหนัก<br>ต้นทาง</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: right; width: 7%;">น้ำหนัก<br>ปลายทาง</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.25rem; text-align: right; width: 7%;">ราคา/ตัน<br>(บาท)</th>
+                            <th style="border: 1px solid #000; padding: 0.5rem 0.5rem; text-align: right; width: 9%;">จำนวนเงิน<br>(บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceTableBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="7" rowspan="3" style="border: 1px solid #000; background: #fff;"></td>
+                            <td colspan="3" style="border: 1px solid #000; padding: 0.4rem; font-weight: bold; font-size: 0.8rem;">รวม</td>
+                            <td id="footSubTotal" style="border: 1px solid #000; padding: 0.4rem 0.5rem; text-align: right; font-weight: bold; font-size: 0.8rem;">0.00</td>
+                        </tr>
+                        <tr id="lossRow">
+                            <td colspan="3" style="border: 1px solid #000; padding: 0.4rem; font-size: 0.8rem; color: #374151;">หัก น้ำหนักสูญหาย</td>
+                            <td id="footLoss" style="border: 1px solid #000; padding: 0.4rem 0.5rem; text-align: right; font-size: 0.8rem; color: red;">0.00</td>
+                        </tr>
+                        <tr id="taxRow">
+                            <td colspan="3" style="border: 1px solid #000; padding: 0.4rem; font-weight: bold; font-size: 0.8rem; color: #374151;">หัก 1%</td>
+                            <td id="footTax1" style="border: 1px solid #000; padding: 0.4rem 0.5rem; text-align: right; font-size: 0.8rem; color: red;">0.00</td>
+                        </tr>
+                        <tr style="background: #f3f4f6; font-weight: bold;">
+                            <td colspan="2" style="border: 1px solid #000; padding: 0.5rem; text-align: center; font-size: 0.8rem;">รวม <span id="invTotalCount">0</span> รายการ</td>
+                            <td colspan="5" id="invThaiBahtText" style="border: 1px solid #000; padding: 0.5rem; text-align: center; color: #000; font-size: 0.8rem;">(ศูนย์บาทถ้วน)</td>
+                            <td colspan="3" style="border: 1px solid #000; padding: 0.5rem; font-size: 0.8rem;">จำนวนเงินทั้งสิ้น</td>
+                            <td id="footGrandTotal" style="border: 1px solid #000; padding: 0.5rem; text-align: right; color: #059669; font-size: 0.8rem;">0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div style="font-size: 0.75rem; margin-bottom: 1.5rem; padding: 0.5rem; border: 1px solid #000; line-height: 1.5; color: #000;">
+                    <b>ช่องทางการชำระเงิน :</b> เลขที่บัญชี <span style="font-size:0.85rem; font-weight:bold;">115-2-27497-8</span> &nbsp;&nbsp;&nbsp;ธนาคารกสิกรไทย สาขาปากน้ำชุมพร &nbsp;&nbsp;&nbsp;หจก.ลาภูทรานสปอร์ต
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; text-align: center; font-size: 0.8rem; margin-top: 1rem; color: #000;">
+                    <div style="border: 1px solid #000; padding: 1rem 0.5rem 0.5rem 0.5rem; border-radius: 4px; background: #fff;"><p style="font-weight: bold; margin-bottom: 2.5rem; font-size: 0.9rem;">ผู้วางบิล</p><p>...........................................................</p><p style="margin-top: 0.6rem; color: #4b5563;">วันที่ ...... / ...... / ......</p></div>
+                    <div style="border: 1px solid #000; padding: 1rem 0.5rem 0.5rem 0.5rem; border-radius: 4px; background: #fff;"><p style="font-weight: bold; margin-bottom: 2.5rem; font-size: 0.9rem;">ผู้ตรวจสอบ</p><p>...........................................................</p><p style="margin-top: 0.6rem; color: #4b5563;">วันที่ ...... / ...... / ......</p></div>
+                    <div style="border: 1px solid #000; padding: 1rem 0.5rem 0.5rem 0.5rem; border-radius: 4px; background: #fff;"><p style="font-weight: bold; margin-bottom: 2.5rem; font-size: 0.9rem;">ผู้รับวางบิล</p><p>...........................................................</p><p style="margin-top: 0.6rem; color: #4b5563;">วันที่ ...... / ...... / ......</p></div>
+                </div>
+
+                <div style="text-align: right; margin-top: 1.5rem;" class="no-print">
+                    <button class="btn btn-success" onclick="window.print()">🖨️ สั่งพิมพ์ใบวางบิลชุดนี้</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const BASE_URL = 'http://localhost:3000/api';
+        let globalJobsList = [];
+
+        async function initBillingPage() {
+            try {
+                const resJobs = await fetch(`${BASE_URL}/jobs`);
+                globalJobsList = await resJobs.json();
+                const resCust = await fetch(`${BASE_URL}/customers`);
+                const customers = await resCust.json();
+                document.getElementById('billCustomerSelect').innerHTML = customers.length === 0 
+                    ? '<option value="">-- กรุณาเพิ่มลูกค้าก่อน --</option>' 
+                    : customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            } catch (error) { console.error(error); }
+        }
+
+        function arabicNumberToThaiText(num) {
+            if (isNaN(num) || num <= 0) return "ศูนย์บาทถ้วน";
+            num = parseFloat(num).toFixed(2);
+            const chars = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
+            const units = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
+            let [integerPart, fractionPart] = num.split('.');
+            let bahtText = "";
+            let len = integerPart.length;
+            for (let i = 0; i < len; i++) {
+                let digit = parseInt(integerPart.charAt(i));
+                let position = len - 1 - i;
+                if (digit !== 0) {
+                    if (position % 6 === 1 && digit === 1) { bahtText += "เอ็ด"; }
+                    else if (position % 6 === 1 && digit === 2) { bahtText += "ยี่"; }
+                    else if (position % 6 === 0 && digit === 1 && i > 0 && integerPart.charAt(i-1) !== '0') { bahtText += "เอ็ด"; }
+                    else { bahtText += chars[digit]; }
+                    bahtText += units[position % 6];
+                }
+                if (position % 6 === 0 && position > 0) { bahtText += "ล้าน"; }
+            }
+            if (bahtText === "") bahtText = "ศูนย์";
+            bahtText += "บาท";
+            if (parseInt(fractionPart) === 0) { bahtText += "ถ้วน"; } 
+            else {
+                let digit1 = parseInt(fractionPart.charAt(0));
+                let digit2 = parseInt(fractionPart.charAt(1));
+                if (digit1 !== 0) {
+                    if (digit1 === 1) bahtText += "สิบ";
+                    else if (digit1 === 2) bahtText += "ยี่สิบ";
+                    else bahtText += chars[digit1] + "สิบ";
+                }
+                if (digit2 !== 0) {
+                    if (digit2 === 1 && digit1 !== 0) bahtText += "เอ็ด";
+                    else bahtText += chars[digit2];
+                }
+                bahtText += "สตางค์";
+            }
+            return bahtText.replace("หนึ่งสิบ", "สิบ");
+        }
+
+        function toggleLossInputs() {
+            const isChecked = document.getElementById('billApplyLoss').checked;
+            document.getElementById('billLossThreshold').disabled = !isChecked;
+            document.getElementById('billLossPricePerTon').disabled = !isChecked;
+            document.getElementById('lossConfigGrid').style.opacity = isChecked ? '1' : '0.5';
+        }
+        function generateBillingReport() {
+            const selectedCust = document.getElementById('billCustomerSelect').value;
+            const start = document.getElementById('billStartDate').value;
+            const end = document.getElementById('billEndDate').value;
+            const container = document.getElementById('billingInvoiceContainer');
+            const tbody = document.getElementById('invoiceTableBody');
+
+            if(!selectedCust) return alert('กรุณาเลือกชื่อลูกค้า');
+
+            let filteredJobs = globalJobsList.filter(job => job.customer === selectedCust);
+            if (start) filteredJobs = filteredJobs.filter(job => (job.dateReceive || job.date || "") >= start);
+            if (end) filteredJobs = filteredJobs.filter(job => (job.dateReceive || job.date || "") <= end);
+
+            if(filteredJobs.length === 0) {
+                container.style.display = 'none';
+                return alert('ไม่พบรายการจัดส่งขนส่งสินค้าในช่วงเวลาที่คุณกรอง');
+            }
+
+            document.getElementById('invCustName').innerText = selectedCust;
+            const currentCustomerObj = globalJobsList.find(j => j.customer === selectedCust) || {};
+            document.getElementById('invCustAddress').innerText = currentCustomerObj.origin ? `${currentCustomerObj.origin} ➔ ปลายทางตามใบงาน` : "ภายในพื้นที่บริการขนส่ง";
+            document.getElementById('invPrintDate').innerText = new Date().toLocaleDateString('th-TH');
+            document.getElementById('invNum').innerText = "69-07-" + String(Math.floor(100 + Math.random() * 900));
+
+            tbody.innerHTML = '';
+            let totalRevenueSum = 0;
+            let totalTaxSum = 0;
+
+            const formatDate = (dateStr) => {
+                if (!dateStr) return '--/--/--';
+                return new Date(dateStr).toLocaleDateString('th-TH', { year: '2-digit', month: 'numeric', day: 'numeric' });
+            };
+
+            filteredJobs.forEach((job, index) => {
+                const revenue = parseFloat(job.totalRevenue) || 0;
+                const tax1 = parseFloat(job.tax1Percent) || (revenue * 0.01);
+                totalRevenueSum += revenue;
+                totalTaxSum += tax1;
+
+                tbody.innerHTML += `<tr>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: center;">${index + 1}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: center;">${formatDate(job.dateReceive || job.date)}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: center;">${formatDate(job.dateSend || job.date)}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: center;"><b>${job.plateNumber}</b></td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${job.origin || '-'}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${job.destination || '-'}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: center;">${job.product}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: right;">${Number(job.weightIn || 0).toFixed(3)}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: right;">${Number(job.weightOut || 0).toFixed(3)}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: right;">${Number(job.pricePerTon).toFixed(2)}</td>
+                    <td style="border: 1px solid #000; padding: 0.4rem; text-align: right; font-weight: 600;">${revenue.toFixed(2)}</td>
+                </tr>`;
+            });
+
+            const isLossChecked = document.getElementById('billApplyLoss').checked;
+            const lossThreshold = parseFloat(document.getElementById('billLossThreshold').value) || 0;
+            const lossPricePerTon = parseFloat(document.getElementById('billLossPricePerTon').value) || 0;
+            let totalLossPenaltySum = 0;
+
+            if (isLossChecked) {
+                filteredJobs.forEach(job => {
+                    const diffLoss = (parseFloat(job.weightIn) || 0) - (parseFloat(job.weightOut) || 0);
+                    if (diffLoss > lossThreshold) {
+                        totalLossPenaltySum += (diffLoss - lossThreshold) * lossPricePerTon;
+                    }
+                });
+                document.getElementById('lossRow').style.display = '';
+            } else {
+                totalLossPenaltySum = 0;
+                document.getElementById('lossRow').style.display = 'none';
+            }
+
+            const isTaxChecked = document.getElementById('billApplyTax').checked;
+            let finalTax = isTaxChecked ? totalTaxSum : 0;
+            document.getElementById('taxRow').style.display = isTaxChecked ? '' : 'none';
+
+            const grandTotalAmount = totalRevenueSum - totalLossPenaltySum - finalTax;
+
+            document.getElementById('footSubTotal').innerText = totalRevenueSum.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('footLoss').innerText = totalLossPenaltySum.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('footTax1').innerText = totalTaxSum.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('invTotalCount').innerText = filteredJobs.length;
+            document.getElementById('footGrandTotal').innerText = grandTotalAmount.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('invThaiBahtText').innerText = `(${arabicNumberToThaiText(grandTotalAmount)})`;
+
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.addEventListener('DOMContentLoaded', initBillingPage);
+    </script>
+</body>
+</html>

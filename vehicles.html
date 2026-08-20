@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการทะเบียนรถ - TMS Logistics</title>
+    <!-- เรียกใช้สไตล์กลาง -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ระบบเมนูเปลี่ยนหน้าข้ามไฟล์ -->
+    <div class="sidebar">
+        <div class="sidebar-brand">📦 TMS Logistics</div>
+        <ul class="sidebar-menu">
+            <li class="menu-item"><a href="index.html">📊 แดชบอร์ดภาพรวม</a></li>
+            <li class="menu-item"><a href="jobs.html">📝 จัดการงานขนส่ง</a></li>
+            <li class="menu-item"><a href="customers.html">👥 จัดการรายชื่อลูกค้า</a></li>
+            <li class="menu-item active"><a href="vehicles.html">🚛 จัดการทะเบียนรถ</a></li>
+            <li class="menu-item"><a href="billing.html">🧾 ออกใบวางบิลลูกค้า</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header><h2>ระบบบริหารจัดการงานขนส่งสินค้า</h2></header>
+        <div class="container">
+
+            <!-- ฟอร์มเพิ่มทะเบียนรถใหม่ -->
+            <div class="card">
+                <div class="card-header">➕ เพิ่มทะเบียนรถใหม่เข้าสู่ระบบ</div>
+                <div class="card-body">
+                    <form id="vehicleForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>ทะเบียนรถ (จังหวัด)</label>
+                                <input type="text" id="vPlate" class="form-control" placeholder="เช่น 4กศ-9999 มหาสารคาม" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ประเภทรถ</label>
+                                <select id="vType" class="form-control">
+                                    <option value="รถ 4 ล้อ">รถ 4 ล้อ</option>
+                                    <option value="รถ 6 ล้อ">รถ 6 ล้อ</option>
+                                    <option value="รถ 10 ล้อ">รถ 10 ล้อ</option>
+                                    <option value="รถพ่วง / เทรลเลอร์">รถพ่วง / เทรลเลอร์</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:1rem;">เพิ่มรถเข้าระบบ</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ตารางแสดงรายการรถทั้งหมด -->
+            <div class="card">
+                <div class="card-header">🚛 รายการทะเบียนรถทั้งหมดในระบบ</div>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr><th>ลำดับ</th><th>ทะเบียนรถ</th><th>ประเภทรถ</th><th>การจัดการ</th></tr>
+                        </thead>
+                        <tbody id="vehicleTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000/api';
+
+        async function refreshVehiclesPageData() {
+            try {
+                const resVehicles = await fetch(`${BASE_URL}/vehicles`);
+                const vehicles = await resVehicles.json();
+
+                const vehicleTbody = document.getElementById('vehicleTableBody');
+                if (vehicleTbody) {
+                    vehicleTbody.innerHTML = '';
+                    vehicles.forEach((v, idx) => {
+                        vehicleTbody.innerHTML += `<tr>
+                            <td>${idx + 1}</td>
+                            <td><b>${v.plateNumber}</b></td>
+                            <td>${v.type}</td>
+                            <td><button class="btn btn-danger" onclick="deleteVehicle(${v.id})">ลบ</button></td>
+                        </tr>`;
+                    });
+                }
+            } catch (error) { console.error("ดึงข้อมูลรถยนต์ล้มเหลว:", error); }
+        }
+
+        document.getElementById('vehicleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const vData = {
+                plateNumber: document.getElementById('vPlate').value,
+                type: document.getElementById('vType').value
+            };
+            const res = await fetch(`${BASE_URL}/vehicles`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(vData)
+            });
+            if (res.ok) { alert('เพิ่มรถสำเร็จ!'); this.reset(); refreshVehiclesPageData(); }
+        });
+
+        async function deleteVehicle(id) {
+            if (confirm('ลบทะเบียนรถนี้?')) {
+                const res = await fetch(`${BASE_URL}/vehicles/${id}`, { method: 'DELETE' });
+                if (res.ok) refreshVehiclesPageData();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', refreshVehiclesPageData);
+    </script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ดภาพรวม - TMS Logistics</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root { 
+            --primary: #3b82f6; 
+            --primary-light: #eff6ff;
+            --success: #10b981; 
+            --success-light: #ecfdf5;
+            --warning: #f59e0b; 
+            --warning-light: #fffbeb;
+            --dark: #0f172a; 
+            --gray-light: #f8fafc;
+            --gray-border: #e2e8f0;
+            --white: #ffffff; 
+            --text-muted: #64748b;
+        }
+        body { background-color: var(--gray-light); color: var(--dark); display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 260px; background-color: var(--dark); color: var(--white); padding: 2rem 1.5rem; display: flex; flex-direction: column; box-shadow: 4px 0 20px rgba(0,0,0,0.05); }
+        .sidebar-brand { font-size: 1.4rem; font-weight: 800; margin-bottom: 2.5rem; color: #60a5fa; letter-spacing: 0.5px; display: flex; align-items: center; gap: 0.5rem; }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .menu-item a { color: #94a3b8; text-decoration: none; padding: 0.85rem 1.25rem; border-radius: 0.5rem; display: block; cursor: pointer; font-size: 0.95rem; font-weight: 500; transition: all 0.2s ease; }
+        .menu-item.active a, .menu-item a:hover { background-color: #1e293b; color: var(--white); transform: translateX(4px); }
+        .menu-item.active a { background-color: var(--primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25); }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-x: hidden; }
+        header { background-color: var(--white); padding: 1.25rem 2.5rem; border-bottom: 1px solid var(--gray-border); display: flex; align-items: center; justify-content: space-between; }
+        header h2 { font-size: 1.3rem; font-weight: 700; color: var(--dark); }
+        
+        .container { padding: 2.5rem; max-width: 1400px; width: 100%; margin: 0 auto; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.75rem; margin-bottom: 2.5rem; }
+        .stat-card { background-color: var(--white); padding: 1.75rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid var(--gray-border); display: flex; flex-direction: column; justify-content: space-between; position: relative; transition: transform 0.2s ease; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; border-radius: 1rem 0 0 1rem; background-color: var(--primary); }
+        .stat-card.warning::before { background-color: var(--warning); }
+        .stat-card.success::before { background-color: var(--success); }
+        .stat-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+        .stat-val { font-size: 2rem; font-weight: 800; color: var(--dark); line-height: 1; }
+        
+        .card { background-color: var(--white); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid var(--gray-border); margin-bottom: 2.5rem; overflow: hidden; }
+        .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--gray-border); font-weight: 700; font-size: 1.05rem; background-color: var(--white); display: flex; justify-content: space-between; align-items: center; color: var(--dark); }
+        .card-body { padding: 2rem; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+        .form-control { padding: 0.65rem 1rem; border: 1px solid var(--gray-border); border-radius: 0.5rem; font-size: 0.9rem; background-color: var(--gray-light); color: var(--dark); transition: all 0.2s ease; outline: none; }
+        .form-control:focus { border-color: var(--primary); background-color: var(--white); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-primary { background-color: var(--primary); color: var(--white); }
+        .btn-primary:hover { background-color: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-warning { background-color: var(--warning); color: var(--dark); }
+        .btn-warning:hover { background-color: #d97706; color: var(--white); }
+        
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--gray-border); vertical-align: middle; }
+        th { background-color: var(--gray-light); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: rgba(248, 250, 252, 0.6); }
+        
+        .badge { padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; }
+        .badge-warning { background-color: var(--warning-light); color: #d97706; }
+        .badge-primary { background-color: var(--primary-light); color: var(--primary); }
+        .badge-success { background-color: var(--success-light); color: var(--success); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">📦 TMS Logistics</div>
+        <ul class="sidebar-menu">
+            <li class="menu-item active"><a href="index.html">📊 แดชบอร์ดภาพรวม</a></li>
+            <li class="menu-item"><a href="jobs.html">📝 จัดการงานขนส่ง</a></li>
+            <li class="menu-item"><a href="customers.html">👥 จัดการรายชื่อลูกค้า</a></li>
+            <li class="menu-item"><a href="vehicles.html">🚛 จัดการทะเบียนรถ</a></li>
+            <li class="menu-item"><a href="billing.html">🧾 ออกใบวางบิลลูกค้า</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h2>แผงควบคุมและสรุปภาพรวมระบบ</h2>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;" id="currentDateDisplay"></div>
+        </header>
+        <div class="container">
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">ใบงานขนส่งทั้งหมดวันนี้</div>
+                    <div id="dashTotalJobs" class="stat-val">0 งาน</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">สถานะรอดำเนินการ</div>
+                    <div id="dashPendingJobs" class="stat-val">0 งาน</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">ประมาณการรายได้วันนี้</div>
+                    <div id="dashTotalRevenue" class="stat-val" style="color: var(--success)">0.00 บ.</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span>➕ บันทึกเปิดจ็อบงานขนส่งใหม่ (ข้อมูลด่วน)</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+                        <label style="font-weight: 600; color: var(--text-muted);">วันที่เปิดบิล:</label>
+                        <input type="date" id="dashJobDate" class="form-control" style="width: 160px; padding: 0.4rem 0.6rem; background: var(--white)" required>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="quickJobForm">
+                        <div class="form-grid">
+                            <div class="form-group"><label>ชื่อบริษัทคู่สัญญา / ลูกค้า</label><select id="dashCustomerSelect" class="form-control" required></select></div>
+                            <div class="form-group"><label>ทะเบียนรถจัดส่ง</label><select id="dashPlateSelect" class="form-control" required></select></div>
+                            <div class="form-group"><label>ประเภทสินค้า/พัสดุ</label><input type="text" id="dashProduct" class="form-control" placeholder="ระบุชนิดสินค้า" required></div>
+                            <div class="form-group"><label>จุดขึ้นสินค้า (ต้นทาง)</label><input type="text" id="dashOrigin" class="form-control" placeholder="อำเภอ, จังหวัด" required></div>
+                            <div class="form-group"><label>จุดลงสินค้า (ปลายทาง)</label><input type="text" id="dashDestination" class="form-control" placeholder="อำเภอ, จังหวัด" required></div>
+                            <div class="form-group"><label>ข้อตกลงราคาต่อตัน (บาท)</label><input type="number" id="dashPrice" class="form-control" placeholder="0.00" required></div>
+                        </div>
+                        <div style="text-align: right; margin-top: 1rem;">
+                            <button type="submit" class="btn btn-primary">⚡ ยืนยันบันทึกและเปิดบิลงาน</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📋 รายการเดินรถจัดส่งและสถานะงานปัจจุบัน (รอดำเนินการ / กำลังจัดส่ง)</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>ลูกค้า / บริษัท</th><th>ทะเบียนรถ</th><th>ชนิดสินค้า</th><th>ต้นทาง</th><th>ปลายทาง</th><th>อัตราค่าขนส่ง</th><th>สถานะดำเนินงาน</th><th>ทางลัดการจัดการ</th></tr>
+                        </thead>
+                        <tbody id="dashTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        const BASE_URL = 'http://localhost:3000/api';
+
+        document.getElementById('currentDateDisplay').innerText = `ข้อมูล ณ วันที่ ${new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+
+        async function refreshDashboardData() {
+            try {
+                if (!document.getElementById('dashJobDate').value) {
+                    document.getElementById('dashJobDate').value = new Date().toISOString().split('T')[0];
+                }
+
+                const resJobs = await fetch(`${BASE_URL}/jobs`);
+                const jobsList = await resJobs.json();
+                const resVehicles = await fetch(`${BASE_URL}/vehicles`);
+                const vehicles = await resVehicles.json();
+                const resCustomers = await fetch(`${BASE_URL}/customers`);
+                const customers = await resCustomers.json();
+
+                const dashTbody = document.getElementById('dashTableBody');
+                if (dashTbody) {
+                    dashTbody.innerHTML = '';
+                    let pending = 0, revenueSum = 0;
+                    
+                    jobsList.forEach(job => {
+                        if (job.status === 'รอดำเนินการ') pending++;
+                        revenueSum += job.totalRevenue || 0;
+                        
+                        // 1. 💡 ซ่อนงานที่สำเร็จแล้ว ไม่ให้แสดงในหน้าแรกตามต้องการ
+                        if (job.status === 'สำเร็จแล้ว') return;
+
+                        let badgeClass = job.status === 'รอดำเนินการ' ? 'badge-warning' : 'badge-primary';
+                        dashTbody.innerHTML += `<tr>
+                            <td><b style="color: var(--dark)">${job.customer}</b></td>
+                            <td><span style="font-weight: 700; color: #475569; background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${job.plateNumber}</span></td>
+                            <td>${job.product}</td>
+                            <td><span style="color: var(--text-muted)">${job.origin}</span></td>
+                            <td><span>${job.destination}</span></td>
+                            <td style="font-weight: 600; text-align: right; padding-right: 2rem;">${Number(job.pricePerTon).toLocaleString()} บ.</td>
+                            <td><span class="badge ${badgeClass}">${job.status}</span></td>
+                            <td>
+                                <!-- 2. ⚡ ปุ่มทางลัดข้ามหน้าไปคีย์น้ำหนักสินค้า -->
+                                <button class="btn btn-warning" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="redirectToEditJob(${job.id})">
+                                    📝 คีย์น้ำหนัก/แก้ไข
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    document.getElementById('dashTotalJobs').innerText = jobsList.length + ' งาน';
+                    document.getElementById('dashPendingJobs').innerText = pending + ' งาน';
+                    document.getElementById('dashTotalRevenue').innerText = revenueSum.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' บ.';
+                }
+
+                const dashCustSelect = document.getElementById('dashCustomerSelect');
+                const dashPlateSelect = document.getElementById('dashPlateSelect');
+
+                let custOpts = customers.length === 0 ? '<option value="">-- กรุณาเพิ่มลูกค้าก่อน --</option>' : customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                let vOpts = vehicles.length === 0 ? '<option value="">-- กรุณาเพิ่มรถก่อน --</option>' : vehicles.map(v => `<option value="${v.plateNumber}">${v.plateNumber}</option>`).join('');
+
+                if (dashCustSelect) dashCustSelect.innerHTML = custOpts;
+                if (dashPlateSelect) dashPlateSelect.innerHTML = vOpts;
+
+            } catch (error) { console.error("ดึงข้อมูลกลางขัดข้อง:", error); }
+        }
+
+        // ฟังก์ชันเก็บรหัสส่งข้ามหน้า
+        function redirectToEditJob(jobId) {
+            localStorage.setItem('autoSelectJobId', jobId);
+            window.location.href = 'jobs.html';
+        }
+
+        document.getElementById('quickJobForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const jobData = {
+                customer: document.getElementById('dashCustomerSelect').value, 
+                plateNumber: document.getElementById('dashPlateSelect').value,
+                product: document.getElementById('dashProduct').value, 
+                origin: document.getElementById('dashOrigin').value,
+                destination: document.getElementById('dashDestination').value, 
+                pricePerTon: document.getElementById('dashPrice').value,
+                date: document.getElementById('dashJobDate').value
+            };
+            const res = await fetch(`${BASE_URL}/jobs`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(jobData) 
+            });
+            if(res.ok) { 
+                alert('บันทึกเปิดจ็อบงานสำเร็จเรียบร้อยครับ!'); 
+                this.reset(); 
+                document.getElementById('dashJobDate').value = new Date().toISOString().split('T')[0];
+                refreshDashboardData(); 
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', refreshDashboardData);
+    </script>
+</body>
+</html>
