@@ -73,13 +73,18 @@
 </head>
 <body>
     <div class="sidebar">
-        <div class="sidebar-brand">📦 TMS Logistics</div>
+        <div class="sidebar-brand">📦LUMPOO TRANSPORT</div>
         <ul class="sidebar-menu">
             <li class="menu-item active"><a href="index.html">📊 แดชบอร์ดภาพรวม</a></li>
             <li class="menu-item"><a href="jobs.html">📝 จัดการงานขนส่ง</a></li>
             <li class="menu-item"><a href="customers.html">👥 จัดการรายชื่อลูกค้า</a></li>
             <li class="menu-item"><a href="vehicles.html">🚛 จัดการทะเบียนรถ</a></li>
             <li class="menu-item"><a href="billing.html">🧾 ออกใบวางบิลลูกค้า</a></li>
+            <li class="menu-item"><a href="users.html" class="menu-item">
+                                    <span class="icon">👥</span>
+                                    <span class="text">จัดการผู้ใช้งาน</span>
+                                    </a></li>
+
         </ul>
     </div>
 
@@ -87,6 +92,9 @@
         <header>
             <h2>แผงควบคุมและสรุปภาพรวมระบบ</h2>
             <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;" id="currentDateDisplay"></div>
+            <div class="user-welcome-box">
+    ผู้เข้าใช้ระบบ: <span id="loggedInUser">กำลังโหลด...</span>
+</div>
         </header>
         <div class="container">
             
@@ -238,6 +246,19 @@
                 refreshDashboardData(); 
             }
         });
+document.addEventListener('DOMContentLoaded', function() {
+    // ดึงชื่อที่ถูกจำไว้จากหน้าล็อกอิน
+    const savedUser = localStorage.getItem('currentUser');
+    const userDisplay = document.getElementById('loggedInUser');
+    
+    if (savedUser) {
+        // นำชื่อผู้ใช้มาแสดงผลตรงจุดที่เราจองไว้
+        userDisplay.innerText = savedUser;
+    } else {
+        // หากเปิดเข้ามาตรงๆ โดยไม่ได้ผ่านหน้าล็อกอิน ให้แสดงข้อความทั่วไปแทน
+        userDisplay.innerText = 'เจ้าหน้าที่ระบบ (LPT)';
+    }
+});
 
         window.addEventListener('DOMContentLoaded', refreshDashboardData);
     </script>

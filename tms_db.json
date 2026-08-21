@@ -61,8 +61,10 @@
       "lossAmount": 0,
       "unloadingFee": 0,
       "netAmount": 0,
-      "status": "รอดำเนินการ",
-      "date": "2026-08-19"
+      "status": "กำลังจัดส่ง",
+      "date": "2026-08-19",
+      "dateReceive": "2026-08-19",
+      "dateSend": "2026-08-19"
     },
     {
       "id": 2,
@@ -80,6 +82,14 @@
       "lossAmount": 0,
       "unloadingFee": 0,
       "netAmount": 10048.5
+    }
+  ],
+  "users": [
+    {
+      "id": "USR-5295",
+      "username": "sam",
+      "password": "12345",
+      "fullName": "ธีรพล อิ่มสมบัติ"
     }
   ]
 }

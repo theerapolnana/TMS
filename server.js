@@ -211,6 +211,82 @@ app.delete('/api/jobs/:id', (req, res) => {
     saveToLocalDisk();
     res.status(200).json({ message: "ลบใบงานขนส่งสำเร็จ" });
 });
+// ==================== เพิ่มเติม: API จัดการผู้ใช้งานใหม่ (ต่อท้ายเซิร์ฟเวอร์เดิม) ====================
+
+// 1. API ดึงรายชื่อผู้ใช้ทั้งหมดไปแสดงในตาราง
+app.get('/api/users', (req, res) => {
+    // อ่านฐานข้อมูล JSON เดิมของคุณตามวิธีที่เซิร์ฟเวอร์เดิมของคุณเรียกใช้
+    // สมมุติว่าฟังก์ชันอ่านไฟล์ของคุณชื่อ readDB() หรือเขียนแบบปกติ
+    try {
+        const data = fs.readFileSync(path.join(__dirname, 'tms_db.json'), 'utf-8');
+        const db = JSON.parse(data);
+        res.json(db.users || []); // คืนค่าตัวแปรอาร์เรย์ users (ถ้าไม่มีให้ส่งอาร์เรย์ว่าง)
+    } catch (err) {
+        res.status(500).json({ message: "อ่านข้อมูลล้มเหลว" });
+    }
+});
+
+// 2. API บันทึกผู้ใช้ใหม่ลงไฟล์ JSON ถาวร
+app.post('/api/users', (req, res) => {
+    try {
+        const dbPath = path.join(__dirname, 'tms_db.json');
+        const db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+        
+        // สร้างโครงสร้างข้อมูลสำหรับบันทึก
+        const newUser = {
+            id: 'USR-' + Date.now().toString().slice(-4), // สร้าง ID สุ่มแบบสั้น
+            username: req.body.username,
+            password: req.body.password,
+            fullName: req.body.fullName
+        };
+
+        // หากในไฟล์ json ยังไม่มีคีย์ users ให้สร้างขึ้นมาใหม่
+        if (!db.users) { db.users = []; }
+        
+        db.users.push(newUser); // เพิ่มเข้าอาร์เรย์
+        fs.writeFileSync(dbPath, JSON.stringify(db, null, 2)); // บันทึกลงไฟล์ตู้ฐานข้อมูลเดิม
+        
+        res.status(201).json(newUser);
+    } catch (err) {
+        res.status(500).json({ message: "บันทึกข้อมูลล้มเหลว" });
+    }
+});
+// 3. API สำหรับแก้ไขข้อมูลผู้ใช้ (PUT)
+app.put('/api/users/:id', (req, res) => {
+    try {
+        const dbPath = path.join(__dirname, 'tms_db.json');
+        const db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+        const index = db.users.findIndex(u => u.id === req.params.id);
+        
+        if (index !== -1) {
+            // อัปเดตข้อมูลทับตัวเดิม โดยยังคงรักษา ID เดิมไว้
+            db.users[index] = { id: req.params.id, ...req.body };
+            fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+            return res.json(db.users[index]);
+        }
+        res.status(404).json({ message: 'ไม่พบผู้ใช้ที่ต้องการแก้ไข' });
+    } catch (err) {
+        res.status(500).json({ message: 'แก้ไขข้อมูลล้มเหลว' });
+    }
+});
+
+// 4. API สำหรับลบข้อมูลผู้ใช้ (DELETE)
+app.delete('/api/users/:id', (req, res) => {
+    try {
+        const dbPath = path.join(__dirname, 'tms_db.json');
+        const db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+        const index = db.users.findIndex(u => u.id === req.params.id);
+        
+        if (index !== -1) {
+            db.users.splice(index, 1); // ลบสมาชิกออกจากอาเรย์
+            fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+            return res.json({ message: 'ลบผู้ใช้สำเร็จ' });
+        }
+        res.status(404).json({ message: 'ไม่พบผู้ใช้ที่ต้องการลบ' });
+    } catch (err) {
+        res.status(500).json({ message: 'ลบข้อมูลล้มเหลว' });
+    }
+});
 
 // Run server
 const PORT = 3000;

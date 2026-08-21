@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการผู้ใช้งาน - LUMPOO TRANSPORT (LPT)</title>
+    <!-- 1. แปะโค้ดสไตล์จาก "ชุดที่ 2 (CSS)" ไว้ตรงนี้ครับ -->
+</head>
+<body>
+
+    <!-- 🛠️ ส่วนแถบเมนูด้านซ้าย (Sidebar) สำหรับลิงก์ไปหน้าอื่น ๆ -->
+    <div class="sidebar">
+        <div class="sidebar-brand">LPT <span>TMS</span></div>
+        
+        <a href="index.html" class="menu-item">
+            <span class="icon">📊</span> <span class="text">หน้าแรก / แดชบอร์ด</span>
+        </a>
+        <a href="jobs.html" class="menu-item">
+            <span class="icon">📦</span> <span class="text">จัดการงานขนส่ง</span>
+        </a>
+        <a href="vehicles.html" class="menu-item">
+            <span class="icon">🚛</span> <span class="text">จัดการยานพาหนะ</span>
+        </a>
+        <a href="customers.html" class="menu-item">
+            <span class="icon">🏢</span> <span class="text">จัดการรายชื่อลูกค้า</span>
+        </a>
+        <a href="billing.html" class="menu-item">
+            <span class="icon">💵</span> <span class="text">จัดการบิลค่าใช้จ่าย</span>
+        </a>
+        <a href="users.html" class="menu-item active">
+            <span class="icon">👥</span> <span class="text">จัดการผู้ใช้งาน</span>
+        </a>
+    </div>
+
+    <!-- 📦 ส่วนพื้นที่เนื้อหาหลัก (Main Content) และฟอร์มการ์ด -->
+    <div class="main-content">
+        <div class="wrapper">
+            
+            <!-- ฝั่งซ้ายของการ์ด: แสดงตารางรายชื่อผู้ใช้งานปัจจุบัน พร้อมปุ่มจัดการ -->
+            <div class="list-panel">
+                <div class="circle-1"></div>
+                <div class="list-content">
+                    <h3>Users List</h3>
+                    <p class="subtitle-left">รายชื่อผู้ใช้งานทั้งหมดในระบบปัจจุบัน (LPT)</p>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">ID</th>
+                                    <th style="width: 25%;">Username</th>
+                                    <th style="width: 30%;">ชื่อ-นามสกุล</th>
+                                    <th style="width: 30%; text-align: center;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <!-- รายชื่อผู้ใช้งานจะถูกโหลดมาแสดงตรงนี้ -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ฝั่งขวาของการ์ด: ฟอร์มกรอกข้อมูล (รองรับทั้งโหมดเพิ่มและโหมดแก้ไข) -->
+            <div class="form-panel">
+                <h2 id="formTitle">Create Account</h2>
+                <p id="formSubtitle" class="subtitle-right">เพิ่มข้อมูลบัญชีผู้เข้าใช้งานใหม่เข้าสู่ระบบงาน LPT</p>
+                
+                <form id="userForm">
+                    <!-- input ลับสำหรับเก็บ ID ของผู้ใช้เวลาอัปเดตแก้ไข -->
+                    <input type="hidden" id="userId">
+
+                    <div class="input-box input-user">
+                        <input type="text" id="regUsername" placeholder="User Name (ชื่อผู้ใช้ระบบ)" required>
+                    </div>
+                    
+                    <div class="input-box input-pass">
+                        <input type="password" id="password" placeholder="Password (รหัสผ่าน)" required>
+                    </div>
+
+                    <div class="input-box input-name">
+                        <input type="text" id="regName" placeholder="Full Name (ชื่อ - นามสกุล)" required>
+                    </div>
+                    
+                    <button type="submit" id="btnSubmit" class="btn-submit">Add New User</button>
+                    <button type="button" id="btnCancelEdit" class="btn-cancel" style="display: none;">ยกเลิกการแก้ไข</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 2. แปะโค้ดระบบควบคุมจาก "ชุดที่ 3 (JavaScript)" ไว้ก่อนแท็กปิด body ตรงนี้ครับ -->
+</body>
+</html>
+<style>
+    * {
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        background: #f3f4f6; 
+        overflow: hidden;
+    }
+
+    /* ==================== 🛠️ สไตล์สำหรับแถบเมนูด้านซ้าย (Sidebar) ==================== */
+    .sidebar {
+        width: 260px;
+        background: #1e293b; 
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        padding: 20px 0;
+        height: 100%;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+    }
+
+    .sidebar-brand {
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        padding: 10px 0 25px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 20px;
+        color: #00c6ff;
+    }
+
+    .sidebar-brand span { color: #ffffff; }
+
+    .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 14px 25px;
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: 15px;
+        transition: all 0.2s;
+        border-left: 4px solid transparent;
+    }
+
+    .menu-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+    }
+
+    .menu-item.active {
+        background: rgba(0, 198, 255, 0.1);
+        color: #00c6ff;
+        border-left-color: #00c6ff;
+        font-weight: 600;
+    }
+
+    .menu-item .icon {
+        margin-right: 12px;
+        font-size: 18px;
+    }
+
+    /* ==================== 📦 สไตล์พื้นที่เนื้อหาหลักและการ์ดข้อมูล ==================== */
+    .main-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        height: 100%;
+    }
+
+    .wrapper {
+        display: flex;
+        width: 100%;
+        max-width: 1050px;
+        height: 600px;
+        background: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    /* --- ฝั่งซ้าย: ตารางรายชื่อผู้ใช้โทนสีน้ำเงินไล่เฉด --- */
+    .list-panel {
+        flex: 1.3;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 40px;
+        color: #ffffff;
+        overflow: hidden;
+    }
+
+    .circle-1 {
+        position: absolute;
+        width: 250px;
+        height: 250px;
+        background: linear-gradient(135deg, #00c6ff, #0072ff);
+        border-radius: 50%;
+        top: -60px;
+        left: -60px;
+        opacity: 0.15;
+    }
+
+    .list-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .list-content h3 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 5px 0;
+    }
+
+    .list-content p.subtitle-left {
+        font-size: 13px;
+        color: #cbd5e1;
+        margin: 0 0 20px 0;
+    }
+
+    .table-container {
+        flex: 1;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    th {
+        color: #00c6ff;
+        font-weight: 600;
+        text-transform: uppercase;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+    }
+
+    td { color: #f1f5f9; vertical-align: middle; }
+    tr:hover td { background: rgba(255, 255, 255, 0.05); }
+
+    /* ปุ่มจัดการในตาราง */
+    .action-btn-group {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+    }
+
+    .btn-action-edit, .btn-action-delete {
+        padding: 6px 10px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #ffffff;
+    }
+
+    .btn-action-edit { background: #f39c12; }
+    .btn-action-edit:hover { background: #d35400; }
+    .btn-action-delete { background: #e74c3c; }
+    .btn-action-delete:hover { background: #c0392b; }
+
+    /* --- ฝั่งขวา: ฟอร์มลงทะเบียนสีขาวคลีนสบายตา --- */
+    .form-panel {
+        flex: 1;
+        padding: 50px 45px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #ffffff;
+    }
+
+    .form-panel h2 {
+        font-size: 28px;
+        color: #1e293b;
+        margin: 0 0 5px 0;
+        font-weight: 700;
+    }
+
+    .form-panel p.subtitle-right {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0 0 30px 0;
+    }
+
+    .input-box {
+        position: relative;
+        margin-bottom: 18px;
+    }
+
+    .input-box input {
+        width: 100%;
+        padding: 14px 16px 14px 45px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #334155;
+        transition: all 0.3s;
+    }
+
+    .input-box input:focus {
+        outline: none;
+        border-color: #1e3c72;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+    }
+
+    .input-box::before {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+        font-size: 14px;
+    }
+    .input-user::before { content: "👤"; }
+    .input-pass::before { content: "🔒"; }
+    .input-name::before { content: "📛"; }
+
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background: #1e3c72;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 10px;
+    }
+    .btn-submit:hover { background: #2a5298; }
+
+    .btn-cancel {
+        width: 100%;
+        padding: 10px;
+        background: #e2e8f0;
+        color: #475569;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.2s;
+    }
+    .btn-cancel:hover { background: #cbd5e1; }
+</style>
+<script>
+    const API_URL = 'http://localhost:3000/api/users';
+    let isEditMode = false;
+
+    // 1. ฟังก์ชันดึงรายชื่อผู้ใช้จากเซิร์ฟเวอร์หลังบ้าน มาแสดงในตารางพร้อมปุ่มแก้ไข/ลบ
+    async function loadUsers() {
+        try {
+            const response = await fetch(API_URL);
+            const users = await response.json();
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = ''; 
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#cbd5e1; opacity:0.6;">ยังไม่มีบัญชีผู้ใช้งาน</td></tr>`;
+                return;
+            }
+
+            users.forEach((user) => {
+                // สร้าง HTML บรรทัดตาราง พร้อมฝังข้อมูลผู้ใช้ลงในปุ่มผ่าน Dataset Attribute
+                const row = `<tr>
+                    <td>${user.id}</td>
+                    <td><strong>${user.username}</strong></td>
+                    <td>${user.fullName}</td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="btn-action-edit" onclick="prepareEdit('${user.id}', '${user.username}', '${user.password}', '${user.fullName}')">แก้ไข</button>
+                            <button class="btn-action-delete" onclick="deleteUser('${user.id}', '${user.username}')">ลบ</button>
+                        </div>
+                    </td>
+                </tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        } catch (error) {
+            console.error('โหลดข้อมูลผิดพลาด:', error);
+        }
+    }
+
+    // 2. ฟังก์ชันดึงข้อมูลจากตารางฝั่งซ้ายมาสวมใส่ในฟอร์มฝั่งขวาเพื่อเตรียมแก้ไข
+    function prepareEdit(id, username, password, fullName) {
+        isEditMode = true;
+        document.getElementById('userId').value = id;
+        document.getElementById('regUsername').value = username;
+        document.getElementById('password').value = password;
+        document.getElementById('regName').value = fullName;
+
+        // สลับข้อความ UI ของฟอร์มให้เข้าสู่โหมดแก้ไข
+        document.getElementById('formTitle').innerText = 'Update Account';
+        document.getElementById('formSubtitle').innerText = `กำลังแก้ไขข้อมูลบัญชีไอดี: ${id}`;
+        document.getElementById('btnSubmit').innerText = 'Save Changes';
+        document.getElementById('btnCancelEdit').style.display = 'block';
+    }
+
+    // 3. ฟังก์ชันยกเลิกโหมดแก้ไข กลับสู่โหมดเพิ่มผู้ใช้ปกติ
+    function resetFormMode() {
+        isEditMode = false;
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        
+        document.getElementById('formTitle').innerText = 'Create Account';
+        document.getElementById('formSubtitle').innerText = 'เพิ่มข้อมูลบัญชีผู้เข้าใช้งานใหม่เข้าสู่ระบบงาน LPT';
+        document.getElementById('btnSubmit').innerText = 'Add New User';
+        document.getElementById('btnCancelEdit').style.display = 'none';
+    }
+
+    // ปุ่มกดยกเลิกการแก้ไข
+    document.getElementById('btnCancelEdit').addEventListener('click', resetFormMode);
+
+    // 4. ฟังก์ชันควบคุมการส่งฟอร์ม (รองรับทั้งเซฟเพิ่มใหม่ และเซฟอัปเดตตัวเก่า)
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const id = document.getElementById('userId').value;
+        const payload = {
+            username: document.getElementById('regUsername').value,
+            password: document.getElementById('password').value,
+            fullName: document.getElementById('regName').value
+        };
+
+        // ตรวจสอบเงื่อนไขว่าจะวิ่งไปที่ API เส้นเพิ่มข้อมูล หรือเส้นแก้ไขข้อมูล
+        const url = isEditMode ? `${API_URL}/${id}` : API_URL;
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert(isEditMode ? 'อัปเดตข้อมูลผู้ใช้งานเรียบร้อย!' : 'เพิ่มบัญชีผู้ใช้งานใหม่สำเร็จ!');
+                resetFormMode();
+                loadUsers(); // รีเฟรชข้อมูลตารางฝั่งซ้ายทันที
+            } else {
+                alert('เกิดข้อผิดพลาดจากระบบหลังบ้าน ไม่สามารถบันทึกได้');
+            }
+        } catch (error) {
+            console.error('เกิดข้อผิดพลาดในระบรับส่ง:', error);
+        }
+    });
+
+    // 5. ฟังก์ชันส่งคำสั่งลบข้อมูลไปยังหลังบ้านตาม ID
+    async function deleteUser(id, username) {
+        if (confirm(`คุณต้องการลบผู้ใช้งาน "${username}" (ID: ${id}) ใช่หรือไม่? ข้อมูลนี้จะหายไปถาวร`)) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('ลบข้อมูลผู้ใช้งานสำเร็จ!');
+                    if (isEditMode && document.getElementById('userId').value === id) {
+                        resetFormMode(); // ถ้ากำลังแก้ไขคนนี้อยู่แล้วโดนลบ ให้เคลียร์ฟอร์มด้วย
+                    }
+                    loadUsers(); // อัปเดตรีเฟรชตาราง
+                } else {
+                    alert('ไม่สามารถลบข้อมูลจากระบบได้');
+                }
+            } catch (error) {
+                console.error('เกิดข้อผิดพลาดในการลบ:', error);
+            }
+        }
+    }
+
+    // เริ่มรันดึงข้อมูลมาโชว์ทันทีเมื่อหน้าเว็บพร้อม
+    document.addEventListener('DOMContentLoaded', loadUsers);
+</script>

@@ -2,59 +2,315 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>TMS - เข้าสู่ระบบ</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in - LUMPOO TRANSPORT (LPT)</title>
     <style>
-        .login-container { width: 400px; margin: 150px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* ปรับเป็นสีพื้นหลังสว่าง โทนขาว-เทาอ่อน เพื่อความสบายตาในการทำงาน */
+            background: #f3f4f6; 
+            overflow: hidden;
+        }
+
+        /* ตัวการ์ดหลักที่แบ่งครึ่งซ้ายขวา */
+        .wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            height: 550px;
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            /* ปรับเงาให้ดูนุ่มนวลและไม่ทึบเกินไปบนพื้นหลังสีสว่าง */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        /* --- ฝั่งซ้าย: Welcome Panel (Blue Gradient + Circles) --- */
+        .welcome-panel {
+            flex: 1.1;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 50px;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        /* ตกแต่งวงกลม Abstract ตามภาพตัวอย่าง */
+        .circle-1 {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            border-radius: 50%;
+            top: -50px;
+            left: -50px;
+            opacity: 0.25;
+        }
+
+        .circle-2 {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, #0072ff, #00c6ff);
+            border-radius: 50%;
+            bottom: 40px;
+            right: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .circle-3 {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #0052d4, #4364f7);
+            border-radius: 50%;
+            bottom: -40px;
+            left: -30px;
+            opacity: 0.5;
+        }
+
+        .welcome-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-text h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .welcome-text h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin: 0 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .welcome-text p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+            max-width: 300px;
+        }
+
+
+        /* --- ฝั่งขวา: Sign In Form --- */
+        .form-panel {
+            flex: 1;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .form-panel h2 {
+            font-size: 32px;
+            color: #1e293b;
+            margin: 0 0 5px 0;
+            font-weight: 700;
+        }
+
+        .form-panel p.subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0 0 35px 0;
+        }
+
+        .input-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 14px 16px 14px 45px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #334155;
+            transition: all 0.3s;
+        }
+
+        .input-box input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+        }
+
+        /* ไอคอนจำลองหน้าช่องกรอก */
+        .input-box::before {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 14px;
+        }
+        .input-user::before { content: "👤"; }
+        .input-pass::before { content: "🔒"; }
+
+        /* ส่วนจดจำและลืมรหัสผ่าน */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        .form-options label {
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .form-options a {
+            color: #1e3c72;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* ปุ่ม Sign in หลักสีน้ำเงินเข้ม */
+        .btn-signin {
+            width: 100%;
+            padding: 14px;
+            background: #1e3c72;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .btn-signin:hover {
+            background: #2a5298;
+        }
+
+        /* ปุ่มตัวเลือกเสริมด้านล่าง (Sign in with other) */
+        .divider {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #e2e8f0;
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
     </style>
 </head>
-<body style="background:#f1f5f9; display:block;">
-    <div class="login-container">
-        <h2>🚚 TMS Login</h2><br>
-        <form id="loginForm">
-            <div class="form-group">
-                <label>ชื่อผู้ใช้งาน</label>
-                <input type="text" id="username" required>
+<body>
+
+    <div class="wrapper">
+        <!-- ฝั่งซ้าย: ข้อความและงานกราฟิก -->
+        <div class="welcome-panel">
+            <div class="circle-1"></div>
+            <div class="circle-2"></div>
+            <div class="circle-3"></div>
+            
+            <div class="welcome-text">
+                <h1>Welcome</h1>
+                <h2>Lumpoo Transport</h2>
+                <p>ระบบบริหารจัดการงานขนส่งสินค้าและโลจิสติกส์อัจฉริยะ</p> <p>บริการด้วยรถ ดูแลด้วยใจ</p>
             </div>
-            <div class="form-group">
-                <label>รหัสผ่าน</label>
-                <input type="password" id="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%;">เข้าสู่ระบบ</button>
-        </form>
+        </div>
+
+        <!-- ฝั่งขวา: ฟอร์มล็อกอิน -->
+        <div class="form-panel">
+            <h2>Sign in</h2>
+            <p class="subtitle">กรอกข้อมูลผู้ใช้งานเพื่อเข้าสู่ระบบงาน LPT</p>
+            
+            <form id="loginForm">
+                <div class="input-box input-user">
+                    <input type="text" id="username" placeholder="User Name" required>
+                </div>
+                
+                <div class="input-box input-pass">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                
+                <div class="form-options">
+                    <label>
+                        <input type="checkbox" id="rememberMe"> Remember me
+                    </label>
+                    <a href="#">Forgot Password?</a>
+                </div>
+                
+                <button type="submit" class="btn-signin">Sign in</button>
+                
+                <div class="divider">OR</div>
+                
+                <button type="button" class="btn-secondary" onclick="alert('ระบบล็อกอินผ่านส่วนกลางกำลังพัฒนา')">Sign in with other</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // ➕ บรรทัดที่เพิ่ม: ดึงข้อความชื่อผู้ใช้ที่พิมพ์ในกล่อง Username มาเก็บในตัวแปร user
+    const user = document.getElementById('username').value;
+    
+    // จำชื่อผู้ใช้ลงในความจำเบราว์เซอร์ (ใช้งานได้แล้วเพราะมีตัวแปร user ด้านบน)
+    localStorage.setItem('currentUser', user);
+    
+    // เปลี่ยนหน้าไปหน้าแดชบอร์ดหลักตามโครงสร้างเดิม
+    window.location.href = 'index.html'; 
+});
 
-            try {
-                const res = await fetch('http://localhost:3000/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    // เก็บค่า Token และสิทธิ์ไว้ในระบบเบราว์เซอร์
-                    localStorage.setItem('tms_token', data.token);
-                    localStorage.setItem('tms_role', data.role);
-                    localStorage.setItem('tms_name', data.name);
-                    
-                    // ล็อกอินผ่านแล้วให้ไปหน้าแดชบอร์ดหลัก
-                    window.location.href = 'index.html';
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('เซิร์ฟเวอร์ขัดข้อง');
-            }
-        });
     </script>
 </body>
 </html>
