@@ -1,12 +1,3 @@
-<head>
-    <!-- วางไว้บนสุดเพื่อให้โค้ดตรวจเช็กสิทธิ์ก่อนจะเริ่มวาดหน้าจอเว็บ -->
-    <script src="js/auth-check.js"></script>
-    
-    <meta charset="UTF-8">
-    <title>TMS System</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -176,209 +167,188 @@
         </div>
     </div>
     <script>
-      const BASE_URL = 'http://localhost:3000/api';
-let localJobsList = [];
-let currentStatusFilter = 'ทั้งหมด';
-async function refreshJobsPageData() {
-    try {
-        const token = localStorage.getItem('tms_token');
-        const fetchOptions = {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        };
+        const BASE_URL = 'http://localhost:3000/api';
+        let localJobsList = [];
+        let currentStatusFilter = 'ทั้งหมด'; // สถานะเริ่มต้นของการกรองตาราง
 
-        // ยิงดึงข้อมูลข้ามตารางพร้อมแนบกุญแจความปลอดภัย
-        const resJobs = await fetch(`${BASE_URL}/jobs`, fetchOptions);
-        localJobsList = await resJobs.json();
+        async function refreshJobsPageData() {
+            try {
+                const resJobs = await fetch(`${BASE_URL}/jobs`);
+                localJobsList = await resJobs.json();
+                const resVehicles = await fetch(`${BASE_URL}/vehicles`);
+                const vehicles = await resVehicles.json();
+                const resCustomers = await fetch(`${BASE_URL}/customers`);
+                const customers = await resCustomers.json();
 
-        const resVehicles = await fetch(`${BASE_URL}/vehicles`, fetchOptions);
-        const vehicles = await resVehicles.json();
+                // สั่งประมวลผลเรนเดอร์ตารางร่วมกับตัวกรองทันทีที่โหลดข้อมูลเสร็จ
+                filterAndRenderTable();
 
-        const resCustomers = await fetch(`${BASE_URL}/customers`, fetchOptions);
-        const customers = await resCustomers.json();
+                const manageCustSelect = document.getElementById('manageCustomerSelect');
+                const managePlateSelect = document.getElementById('managePlateSelect');
 
-        // สั่งให้ตารางเริ่มวาดข้อมูลทันที
-        filterAndRenderTable();
+                let custOpts = customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                let vOpts = vehicles.map(v => `<option value="${v.plateNumber}">${v.plateNumber}</option>`).join('');
 
-        // ป้อนรายชื่อใส่ช่อง Dropdown เพื่อให้ผูกข้อมูลได้ถูกต้องไม่พิมพ์ผิด
-        const manageCustSelect = document.getElementById('manageCustomerSelect');
-        const managePlateSelect = document.getElementById('managePlateSelect');
+                if (manageCustSelect) manageCustSelect.innerHTML = custOpts;
+                if (managePlateSelect) managePlateSelect.innerHTML = vOpts;
 
-        if (manageCustSelect) {
-            manageCustSelect.innerHTML = '<option value="">-- เลือกคู่ค้า --</option>' + 
-                customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-        }
-        if (managePlateSelect) {
-            managePlateSelect.innerHTML = '<option value="">-- เลือกทะเบียนรถ --</option>' + 
-                vehicles.map(v => `<option value="${v.plateNo || v.plateNumber}">${v.plateNo || v.plateNumber}</option>`).join('');
+            } catch (error) { console.error("ดึงข้อมูลหน้าจัดการงานล้มเหลว:", error); }
         }
 
-    } catch (error) { 
-        console.error("ดึงข้อมูลหน้าจัดการงานล้มเหลว:", error); 
-    }
+        // ⚡ หัวใจหลัก: ฟังก์ชันควบรวม ค้นหาคำค้นพ่วงแท็บสถานะงาน
+        function filterAndRenderTable() {
+            const searchKeyword = document.getElementById('jobSearchInput').value.trim().toLowerCase();
+            const manageTbody = document.getElementById('manageTableBody');
+            if (!manageTbody) return;
+
+            manageTbody.innerHTML = '';
+
+            localJobsList.forEach(job => {
+                // 1. ตรวจสอบแท็บสถานะงาน
+                if (currentStatusFilter !== 'ทั้งหมด' && job.status !== currentStatusFilter) return;
+
+                // 2. ตรวจสอบเงื่อนไขกล่องค้นหา (เช็กตัวอักษร ทะเบียน, ลูกค้า, ชนิดสินค้า)
+                const matchCustomer = (job.customer || "").toLowerCase().includes(searchKeyword);
+                const matchPlate = (job.plateNumber || "").toLowerCase().includes(searchKeyword);
+                const matchProduct = (job.product || "").toLowerCase().includes(searchKeyword);
+                const matchId = `job-${job.id}`.toLowerCase().includes(searchKeyword);
+
+                if (searchKeyword && !matchCustomer && !matchPlate && !matchProduct && !matchId) return;
+
+                // 3. เริ่มพิมพ์เรนเดอร์ตาราง แถวที่ผ่านคุณสมบัติ
+                let badgeClass = job.status === 'รอดำเนินการ' ? 'badge-warning' : (job.status === 'สำเร็จแล้ว' ? 'badge-success' : 'badge-primary');
+                manageTbody.innerHTML += `<tr>
+                    <td>JOB-${job.id}</td>
+                    <td><b>${job.customer}</b></td>
+                    <td><span style="font-weight: 700; color: #475569; background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${job.plateNumber}</span></td>
+                    <td>${job.product}</td>
+                    <td>${Number(job.pricePerTon).toLocaleString()} บ.</td>
+                    <td>${Number(job.weightIn || 0).toFixed(2)} ตัน</td>
+                    <td><span style="color:blue; font-weight:600">${Number(job.weightOut || 0).toFixed(2)} ตัน</span></td>
+                    <td><b style="color:var(--success)">${Number(job.totalRevenue || 0).toLocaleString(undefined, {minimumFractionDigits: 2})} บ.</b></td>
+                    <td><span class="badge ${badgeClass}">${job.status}</span></td>
+                    <td class="no-print">
+                        <button class="btn btn-warning" onclick="selectJobForEdit(${job.id})">เลือกเพื่อแก้ไข/เติมน้ำหนัก</button>
+                        <button class="btn btn-danger" onclick="deleteJob(${job.id})">ลบ</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // ฟังก์ชันสลับการเลือกปุ่มแท็บสถานะด้านบนตาราง
+        function changeStatusFilter(status) {
+            currentStatusFilter = status;
+            
+            // ล้างสถานะไฮไลต์ของแท็บเดิมทั้งหมดออก
+            document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+            
+            // ไฮไลต์แท็บใหม่ที่ผู้ใช้คลิกเลือก
+            if (status === 'ทั้งหมด') document.getElementById('tab-all').classList.add('active');
+            else if (status === 'รอดำเนินการ') document.getElementById('tab-pending').classList.add('active');
+            else if (status === 'กำลังจัดส่ง') document.getElementById('tab-shipping').classList.add('active');
+            else if (status === 'สำเร็จแล้ว') document.getElementById('tab-success').classList.add('active');
+
+            // สั่งอัปเดตตารางให้แสดงผลใหม่ทันที
+            filterAndRenderTable();
+        }
+
+        // จุดที่ 1: คัดลอกแทนที่ฟังก์ชัน selectJobForEdit(id) เดิมในหน้า jobs.html
+function selectJobForEdit(id) {
+    const job = localJobsList.find(j => j.id === id);
+    if (!job) return;
+    document.getElementById('editingJobId').value = job.id;
+    document.getElementById('manageCustomerSelect').value = job.customer;
+    document.getElementById('managePlateSelect').value = job.plateNumber;
+    document.getElementById('manageProduct').value = job.product;
+    document.getElementById('managePrice').value = job.pricePerTon;
+    document.getElementById('manageWeightIn').value = job.weightIn;
+    document.getElementById('manageWeightOut').value = job.weightOut;
+    document.getElementById('manageOrigin').value = job.origin;
+    document.getElementById('manageDestination').value = job.destination;
+    document.getElementById('manageStatus').value = job.status;
+
+    // เติมค่าวันที่ดึงมาจากดาต้าเบส (หากยังไม่เคยกรอกจะดึงวันที่ตั้งต้นตอนเปิดบิล)
+    const defaultDate = job.date || new Date().toISOString().split('T')[0];
+    document.getElementById('manageDateReceive').value = job.dateReceive || defaultDate;
+    document.getElementById('manageDateSend').value = job.dateSend || defaultDate;
+
+    document.getElementById('editFormTitle').innerText = `📝 แก้ไขงาน JOB-${job.id}`;
+    document.getElementById('saveJobBtn').innerText = 'บันทึกข้อมูลค่าน้ำหนักและรายได้ใหม่';
+    document.getElementById('saveJobBtn').removeAttribute('disabled');
+    document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-function filterAndRenderTable() {
-    const searchInput = document.getElementById('jobSearchInput');
-    const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    const manageTbody = document.getElementById('manageTableBody');
-    
-    if (!manageTbody) return;
-    manageTbody.innerHTML = '';
 
-    if (localJobsList.length === 0) {
-        manageTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#64748b;">📭 ยังไม่มีข้อมูลใบงานขนส่งในระบบ</td></tr>`;
-        return;
-    }
-
-    localJobsList.forEach(job => {
-        if (currentStatusFilter !== 'ทั้งหมด' && job.status !== currentStatusFilter) return;
-
-        const customerVal = job.customerName || job.customer || "";
-        const plateVal = job.plateNo || job.plateNumber || "";
-        const productVal = job.product || "ทั่วไป";
-
-        const matchCustomer = customerVal.toLowerCase().includes(searchKeyword);
-        const matchPlate = plateVal.toLowerCase().includes(searchKeyword);
-        const matchProduct = productVal.toLowerCase().includes(searchKeyword);
-        const matchId = `job-${job.id}`.toLowerCase().includes(searchKeyword);
-
-        if (searchKeyword && !matchCustomer && !matchPlate && !matchProduct && !matchId) return;
-
-        let badgeClass = 'badge-warning';
-        if (job.status === 'In-Transit' || job.status === 'กำลังวิ่งส่ง') badgeClass = 'badge-transit';
-        if (job.status === 'สำเร็จแล้ว' || job.status === 'Delivered') badgeClass = 'badge-success';
-
-        const revenue = Number(job.netAmount) || Number(job.totalRevenue) || 0;
-
-        manageTbody.innerHTML += `
-            <tr>
-                <td style="font-weight: bold; color: var(--secondary-color);">${job.id}</td>
-                <td><b>${customerVal}</b></td>
-                <td><span style="font-weight: 700; color: #475569; background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${plateVal}</span></td>
-                <td>${productVal}</td>
-                <td>${(Number(job.pricePerTon) || 0).toLocaleString()} บ.</td>
-                <td>${(Number(job.weightIn) || 0).toFixed(2)} ตัน</td>
-                <td><span style="color:blue; font-weight:600">${(Number(job.weightOut) || 0).toFixed(2)} ตัน</span></td>
-                <td><b style="color:var(--success)">${revenue.toLocaleString(undefined, {minimumFractionDigits: 2})} บ.</b></td>
-                <td><span class="badge ${badgeClass}">${job.status || 'รอดำเนินการ'}</span></td>
-                <td class="no-print">
-                    <button class="btn btn-warning" style="padding: 5px 10px; font-size: 13px;" onclick="selectJobForEdit('${job.id}')">✏️ แก้ไข/เติมน้ำหนัก</button>
-                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 13px;" onclick="deleteJob('${job.id}')">🗑️ ลบ</button>
-                </td>
-            </tr>
-        `;
+// จุดที่ 2: คัดลอกแทนที่ตัวดักฟัง 'submit' ของ manageJobForm เดิมในหน้า jobs.html
+document.getElementById('manageJobForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('editingJobId').value;
+    const updatedData = {
+        customer: document.getElementById('manageCustomerSelect').value, // 👈 ส่งชื่อลูกค้าตัวใหม่
+        plateNumber: document.getElementById('managePlateSelect').value, // 👈 ส่งทะเบียนรถตัวใหม่
+        product: document.getElementById('manageProduct').value,         // 👈 ส่งชนิดสินค้าตัวใหม่
+        pricePerTon: document.getElementById('managePrice').value, 
+        weightIn: document.getElementById('manageWeightIn').value,
+        weightOut: document.getElementById('manageWeightOut').value, 
+        origin: document.getElementById('manageOrigin').value,
+        destination: document.getElementById('manageDestination').value, 
+        status: document.getElementById('manageStatus').value,
+        dateReceive: document.getElementById('manageDateReceive').value, // 👈 ส่งวันรับสินค้า
+        dateSend: document.getElementById('manageDateSend').value        // 👈 ส่งวันส่งสินค้า
+    };
+    const res = await fetch(`${BASE_URL}/jobs/${id}`, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(updatedData) 
     });
-}
-// จังหวะที่ 1: ดึงรายละเอียดงานที่กดเลือกขึ้นมากางลงช่องกรอกฟอร์ม
-async function selectJobForEdit(id) {
-    try {
-        const token = localStorage.getItem('tms_token');
-        const res = await fetch(`${BASE_URL}/jobs/${id}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+    if (res.ok) { alert('อัปเดตข้อมูลใบงานและคำนวณเงินสำเร็จ!'); resetJobForm(); refreshJobsPageData(); }
+});
+
+
+        function resetJobForm() {
+            document.getElementById('manageJobForm').reset();
+            document.getElementById('editingJobId').value = '';
+            document.getElementById('editFormTitle').innerText = '🔍 คีย์รายละเอียดน้ำหนัก & แก้ไขจ็อบงาน';
+            document.getElementById('saveJobBtn').innerText = '⚠️ กรุณาเลือกงานจากตารางด้านล่างเพื่อทำการแก้ไข';
+            document.getElementById('saveJobBtn').setAttribute('disabled', 'true');
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
+
+        document.getElementById('manageJobForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editingJobId').value;
+            const updatedData = {
+                pricePerTon: document.getElementById('managePrice').value, 
+                weightIn: document.getElementById('manageWeightIn').value,
+                weightOut: document.getElementById('manageWeightOut').value, 
+                origin: document.getElementById('manageOrigin').value,
+                destination: document.getElementById('manageDestination').value, 
+                status: document.getElementById('manageStatus').value
+            };
+            const res = await fetch(`${BASE_URL}/jobs/${id}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(updatedData) 
+            });
+            if (res.ok) { alert('อัปเดตน้ำหนักและคำนวณเงินสำเร็จ!'); resetJobForm(); refreshJobsPageData(); }
+        });
+
+        async function deleteJob(id) {
+            if (confirm('คุณต้องการลบจ็อบงานนี้?')) {
+                const res = await fetch(`${BASE_URL}/jobs/${id}`, { method: 'DELETE' });
+                if (res.ok) refreshJobsPageData();
+            }
+        }
+
+        // ระบบจับสัญญาณเชื่อมโยง One-Click ทางลัดมาจากหน้าแดชบอร์ดแรก
+        window.addEventListener('DOMContentLoaded', async () => {
+            await refreshJobsPageData();
+            const autoJobId = localStorage.getItem('autoSelectJobId');
+            if (autoJobId) {
+                selectJobForEdit(parseInt(autoJobId));
+                localStorage.removeItem('autoSelectJobId');
             }
         });
-        const job = await res.json();
-
-        if (document.getElementById('manageJobId')) document.getElementById('manageJobId').value = job.id;
-        if (document.getElementById('manageCustomerSelect')) document.getElementById('manageCustomerSelect').value = job.customerName || job.customer || '';
-        if (document.getElementById('managePlateSelect')) document.getElementById('managePlateSelect').value = job.plateNo || job.plateNumber || '';
-        if (document.getElementById('manageProductInput')) document.getElementById('manageProductInput').value = job.product || '';
-        if (document.getElementById('managePriceInput')) document.getElementById('managePriceInput').value = job.pricePerTon || 0;
-        if (document.getElementById('manageWeightIn')) document.getElementById('manageWeightIn').value = job.weightIn || 0;
-        if (document.getElementById('manageWeightOut')) document.getElementById('manageWeightOut').value = job.weightOut || 0;
-        if (document.getElementById('manageStatusSelect')) document.getElementById('manageStatusSelect').value = job.status || 'รอดำเนินการ';
-
-    } catch (error) {
-        alert("โหลดฟอร์มแก้ไขใบงานล้มเหลว");
-    }
-}
-
-// จังหวะที่ 2: ดักจับการกดส่งฟอร์มเพื่อแก้ไขข้อมูลลงฐานข้อมูล (PUT)
-const editForm = document.getElementById('manageJobForm');
-if (editForm) {
-    editForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const id = document.getElementById('manageJobId').value;
-        const token = localStorage.getItem('tms_token');
-        
-        const price = Number(document.getElementById('managePriceInput').value) || 0;
-        const wOut = Number(document.getElementById('manageWeightOut').value) || 0;
-        const calculatedRevenue = price * wOut; // คำนวณรายได้ใหม่ทันทีหลังเติมน้ำหนักปลายทาง
-
-        const updatedData = {
-            customerName: document.getElementById('manageCustomerSelect').value,
-            plateNo: document.getElementById('managePlateSelect').value,
-            product: document.getElementById('manageProductInput').value,
-            pricePerTon: price,
-            weightIn: Number(document.getElementById('manageWeightIn').value) || 0,
-            weightOut: wOut,
-            netAmount: calculatedRevenue,
-            status: document.getElementById('manageStatusSelect').value
-        };
-
-        try {
-            const res = await fetch(`${BASE_URL}/jobs/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updatedData)
-            });
-
-            if (res.ok) {
-                alert('🎉 ปรับปรุงและบันทึกข้อมูลใบงานสำเร็จเรียบร้อยครับ!');
-                editForm.reset();
-                refreshJobsPageData(); // อัปเดตตารางหน้ารายการสดใหม่ทันที
-            }
-        } catch (error) {
-            alert('ไม่สามารถอัปเดตข้อมูลได้ในขณะนี้');
-        }
-    });
-}
-async function deleteJob(id) {
-    if (confirm('⚠️ คุณยืนยันที่จะลบข้อมูลใบงานชิ้นนี้ออกจากฐานข้อมูลถาวรใช่หรือไม่?')) {
-        try {
-            const token = localStorage.getItem('tms_token');
-            const res = await fetch(`${BASE_URL}/jobs/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (res.ok) {
-                alert('🗑️ ลบข้อมูลใบงานออกจากระบบสำเร็จแล้ว!');
-                refreshJobsPageData(); // รีเฟรอร์ตารางข้อมูลรอบถัดไปทันที
-            } else {
-                alert('ไม่สามารถลบได้ บัญชีของคุณสิทธิ์ไม่เพียงพอ');
-            }
-        } catch (error) {
-            alert('ระบบเกิดข้อผิดพลาดในการเชื่อมต่อเพื่อลบข้อมูล');
-        }
-    }
-}
-
-// ใช้งานแถบสลับกรองแท็บสถานะงาน
-function setStatusFilter(statusValue, element) {
-    currentStatusFilter = statusValue;
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => btn.classList.remove('active'));
-    if (element) element.classList.add('active');
-    filterAndRenderTable();
-}
-
-// สั่งเปิดตัวทำงานหลักทันทีที่โหลดหน้าจอเพจสำเร็จ
-window.addEventListener('DOMContentLoaded', refreshJobsPageData);
- 
-
     </script>
 </body>
 </html>
